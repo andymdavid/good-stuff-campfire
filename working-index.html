@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>The Good Stuff Campfire - Ocean Background</title>
+    <meta name="description" content="A simplified ocean scene for video content background">
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+    <style>
+        body { margin: 0; padding: 0; overflow: hidden; background-color: #000; }
+        canvas { display: block; width: 100%; height: 100%; }
+    </style>
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "./modules/three/build/three.module.min.js"
+            }
+        }
+    </script>
+</head>
+<body>
+    <script type="module">
+        import { 
+            Clock,
+            Scene, 
+            PerspectiveCamera, 
+            WebGLRenderer, 
+            Mesh, 
+            BoxGeometry, 
+            PlaneGeometry,
+            ShaderMaterial,
+            DoubleSide,
+            MeshBasicMaterial,
+            Color,
+            Vector3,
+            Uniform
+        } from 'three';
+        
+        // Create main objects
+        const scene = new Scene();
+        scene.background = new Color(0x000033);
+        
+        const camera = new PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.3, 4000);
+        camera.position.set(0, 5, 15);
+        camera.lookAt(0, 0, 0);
+        
+        const renderer = new WebGLRenderer({ antialias: true });
+        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setClearColor(0x000033, 1);
+        document.body.appendChild(renderer.domElement);
+        
+        // Add a simple ocean plane
+        const oceanGeometry = new PlaneGeometry(100, 100, 1, 1);
+        const oceanMaterial = new MeshBasicMaterial({ 
+            color: 0x0077BE, 
+            side: DoubleSide,
+            transparent: true,
+            opacity: 0.8
+        });
+        const ocean = new Mesh(oceanGeometry, oceanMaterial);
+        ocean.rotation.x = -Math.PI / 2;
+        ocean.position.y = -1;
+        scene.add(ocean);
+        
+        // Add a reference cube
+        const cubeGeometry = new BoxGeometry(1, 1, 1);
+        const cubeMaterial = new MeshBasicMaterial({ color: 0x00ff00 });
+        const cube = new Mesh(cubeGeometry, cubeMaterial);
+        cube.position.set(0, 0, 0);
+        scene.add(cube);
+        
+        // Animation loop
+        const clock = new Clock();
+        
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            const delta = clock.getDelta();
+            
+            // Rotate the cube
+            cube.rotation.x += 0.5 * delta;
+            cube.rotation.y += 0.5 * delta;
+            
+            // Simulate day/night cycle
+            const time = clock.elapsedTime;
+            const skyColorValue = Math.sin(time * 0.1) * 0.5 + 0.5;
+            scene.background = new Color(0, 0, skyColorValue * 0.5);
+            
+            // Render
+            renderer.render(scene, camera);
+        }
+        
+        animate();
+        
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+        
+        // Add zooming with mouse wheel
+        window.addEventListener('wheel', (event) => {
+            const zoomSpeed = 0.5;
+            const zoomDirection = event.deltaY > 0 ? 1 : -1;
+            
+            const cameraDirection = new Vector3(0, 0, -1).applyQuaternion(camera.quaternion);
+            const newPosition = camera.position.clone().add(
+                cameraDirection.multiplyScalar(zoomDirection * zoomSpeed)
+            );
+            
+            // Limit zoom distance
+            const distance = newPosition.distanceTo(new Vector3(0, 0, 0));
+            if (distance > 5 && distance < 30) {
+                camera.position.copy(newPosition);
+            }
+            
+            camera.lookAt(0, 0, 0);
+        });
+    </script>
+</body>
+</html> 
