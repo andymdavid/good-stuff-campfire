@@ -1,4 +1,4 @@
-import { Mesh, PlaneGeometry, MeshStandardMaterial, Vector2, DataTexture, RGBAFormat, FloatType, RepeatWrapping } from "three";
+import { Mesh, PlaneGeometry, MeshStandardMaterial, Vector2, DataTexture, RGBAFormat, FloatType, RepeatWrapping, Color } from "three";
 import { camera } from "../scripts/SimplifiedScene.js";
 import { dirToLight } from "../scene/Skybox.js";
 
@@ -117,14 +117,26 @@ export function Update() {
     // Update beach lighting based on sun direction
     const sunIntensity = Math.max(0.1, dirToLight.y); // Keep minimum light level
     
-    // More dramatic but still visible lighting change between day and night
+    // Adjust material properties based on time of day
+    const material = beach.material;
+    
+    // More dramatic lighting changes between day and night
     if (sunIntensity <= 0.2) {
-        // Night time - maintain better visibility while still dark
-        beach.material.emissiveIntensity = 0.08 + (sunIntensity / 0.2) * 0.07; // Varies from 0.08 to 0.15
+        // Night time settings
+        material.emissiveIntensity = 0.05; // Reduced base glow at night
+        material.roughness = 0.8; // Increased roughness at night
+        material.envMapIntensity = 0.3; // Reduced environment reflection at night
     } else {
-        // Day time - scale with sun more dramatically
-        beach.material.emissiveIntensity = 0.15 + (sunIntensity - 0.2) * 0.5; // Varies from 0.15 to ~0.55
+        // Day time settings
+        material.emissiveIntensity = 0.0; // No emissive during day
+        material.roughness = 0.65; // Standard roughness during day
+        material.envMapIntensity = 1.0; // Full environment reflection during day
     }
+    
+    // Smoothly interpolate the material color based on sun intensity
+    const dayColor = new Color(0xd2b48c); // Warm sand color for day
+    const nightColor = new Color(0x7a6a4f); // Darker, cooler sand color for night
+    material.color.lerpColors(nightColor, dayColor, sunIntensity);
     
     if (beach.parent) {
         console.log("Beach position:", beach.position);

@@ -1,9 +1,11 @@
-import { Color, PerspectiveCamera, Scene, Vector3, WebGLRenderer, sRGBEncoding, BoxGeometry, Mesh, MeshBasicMaterial, DirectionalLight, AmbientLight } from "three";
+import { Color, PerspectiveCamera, Scene, Vector3, WebGLRenderer, sRGBEncoding, BoxGeometry, Mesh, MeshBasicMaterial, DirectionalLight, AmbientLight, Clock } from "three";
 import * as Skybox from "../scene/Skybox.js";
 import * as Ocean from "../scene/Ocean.js";
 import * as Beach from "../scene/Beach.js";
+import * as Campfire from "../scene/Campfire.js";
 
 export const body = document.createElement("div");
+export const clock = new Clock();
 
 export const renderer = new WebGLRenderer({ antialias: true });
 export const scene = new Scene();
@@ -63,6 +65,7 @@ export function Start() {
     renderer.autoClearColor = true;
     renderer.outputEncoding = sRGBEncoding;
     renderer.setClearColor(0x000033, 1);
+    renderer.shadowMap.enabled = true;
     body.appendChild(renderer.domElement);
     
     console.log("Renderer initialized:", renderer);
@@ -83,15 +86,12 @@ export function Start() {
     UpdateCameraRotation();
 
     // Add lights to the scene
+    sunLight.castShadow = true;
+    sunLight.shadow.mapSize.width = 2048;
+    sunLight.shadow.mapSize.height = 2048;
     scene.add(sunLight);
     scene.add(ambientLight);
 
-    // Add a debug cube to verify rendering
-    const geometry = new BoxGeometry(1, 1, 1);
-    const material = new MeshBasicMaterial({ color: 0x00ff00 });
-    const cube = new Mesh(geometry, material);
-    scene.add(cube);
-    
     // Simple zoom function with mouse wheel
     window.addEventListener('wheel', function(event) {
         const zoomSpeed = 0.5;
@@ -147,12 +147,23 @@ export function Start() {
         console.error("Error starting Beach:", error);
     }
     
+    console.log("SimplifiedScene: Starting Campfire");
+    try {
+        Campfire.Start();
+        scene.add(Campfire.campfire);
+        console.log("Campfire added:", Campfire.campfire);
+    } catch (error) {
+        console.error("Error starting Campfire:", error);
+    }
+    
     console.log("SimplifiedScene: Initialization complete");
 }
 
 let frameCount = 0;
 
 export function Update() {
+    const deltaTime = clock.getDelta();
+    
     // Add some debug output on the first few frames
     if (frameCount < 5) {
         console.log(`Rendering frame ${frameCount} - Camera position: ${camera.position.x}, ${camera.position.y}, ${camera.position.z}`);
@@ -167,6 +178,7 @@ export function Update() {
         Skybox.Update();
         Ocean.Update();
         Beach.Update();
+        Campfire.Update(deltaTime);
         renderer.render(scene, camera);
     } catch (error) {
         console.error("Error during scene update:", error);
