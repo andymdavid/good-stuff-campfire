@@ -1,4 +1,4 @@
-import { Color, PerspectiveCamera, Scene, Vector3, WebGLRenderer, sRGBEncoding, BoxGeometry, Mesh, MeshBasicMaterial } from "three";
+import { Color, PerspectiveCamera, Scene, Vector3, WebGLRenderer, sRGBEncoding, BoxGeometry, Mesh, MeshBasicMaterial, DirectionalLight, AmbientLight } from "three";
 import * as Skybox from "../scene/Skybox.js";
 import * as Ocean from "../scene/Ocean.js";
 import * as Beach from "../scene/Beach.js";
@@ -14,8 +14,12 @@ export const cameraUp = new Vector3();
 export const cameraForward = new Vector3();
 
 // Set fixed position for camera
-const CAMERA_POSITION = new Vector3(0, 5, 15);
-const CAMERA_LOOK_AT = new Vector3(0, 0, 0);
+const CAMERA_POSITION = new Vector3(0, 2, 8);
+const CAMERA_LOOK_AT = new Vector3(0, 1, 0);
+
+// Create lights
+export const sunLight = new DirectionalLight(0xffffff, 2.0);
+export const ambientLight = new AmbientLight(0x404040, 0.5);
 
 export function UpdateCameraRotation() {
     cameraRight.copy(new Vector3(1, 0, 0).applyQuaternion(camera.quaternion));
@@ -36,7 +40,7 @@ export function SetResolution(value) {
     renderer.setSize(width, height, false);
 }
 
-export let fov = 70;
+export let fov = 60;
 export function SetFOV(value) {
     fov = value;
     camera.fov = value;
@@ -78,6 +82,10 @@ export function Start() {
     camera.lookAt(CAMERA_LOOK_AT);
     UpdateCameraRotation();
 
+    // Add lights to the scene
+    scene.add(sunLight);
+    scene.add(ambientLight);
+
     // Add a debug cube to verify rendering
     const geometry = new BoxGeometry(1, 1, 1);
     const material = new MeshBasicMaterial({ color: 0x00ff00 });
@@ -95,7 +103,7 @@ export function Start() {
         
         // Limit how close/far the camera can go
         const distance = newPos.distanceTo(CAMERA_LOOK_AT);
-        if (distance > 5 && distance < 30) {
+        if (distance > 3 && distance < 15) {
             camera.position.copy(newPos);
         }
         
@@ -152,6 +160,10 @@ export function Update() {
     }
     
     try {
+        // Update sun light direction based on skybox
+        sunLight.position.copy(Skybox.dirToLight).multiplyScalar(100);
+        sunLight.lookAt(0, 0, 0);
+        
         Skybox.Update();
         Ocean.Update();
         Beach.Update();
