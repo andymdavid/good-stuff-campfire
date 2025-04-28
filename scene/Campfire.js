@@ -40,6 +40,11 @@ const LIGHT_HEIGHT = 0.5;
 const LIGHT_INTENSITY = 5.0;
 const LIGHT_DISTANCE = 15;
 
+// Constants for sitting logs
+const SITTING_LOG_LENGTH = 1.8;
+const SITTING_LOG_RADIUS = 0.35;
+const SITTING_LOG_DISTANCE = 2.2; // Distance from campfire center
+
 // Particle system constants
 const NUM_FIRE_PARTICLES = 100;
 const NUM_SMOKE_PARTICLES = 50;
@@ -112,6 +117,41 @@ function createLogs() {
     return logsGroup;
 }
 
+function createSittingLogs() {
+    const sittingLogsGroup = new Group();
+    
+    // Create log material with same properties as campfire logs
+    const logMaterial = new MeshStandardMaterial({
+        color: 0x4a3520,
+        roughness: 0.8,
+        metalness: 0.0,
+        emissive: 0x4a3520,
+        emissiveIntensity: 0.2
+    });
+
+    // Create log geometry - slightly larger than campfire logs
+    const logGeometry = new CylinderGeometry(SITTING_LOG_RADIUS, SITTING_LOG_RADIUS, SITTING_LOG_LENGTH, 8);
+
+    // Create two logs on either side of the campfire
+    const logPositions = [
+        // Left log for Pete
+        { pos: new Vector3(-SITTING_LOG_DISTANCE, SITTING_LOG_RADIUS, -1), rot: [0, 0, Math.PI/2] },
+        // Right log for Andy
+        { pos: new Vector3(SITTING_LOG_DISTANCE, SITTING_LOG_RADIUS, -1), rot: [0, 0, Math.PI/2] }
+    ];
+
+    logPositions.forEach(({ pos, rot }) => {
+        const log = new Mesh(logGeometry, logMaterial);
+        log.position.copy(pos);
+        log.rotation.set(...rot);
+        log.castShadow = true;
+        log.receiveShadow = true;
+        sittingLogsGroup.add(log);
+    });
+
+    return sittingLogsGroup;
+}
+
 function createParticleSystem(type) {
     const system = PARTICLE_SYSTEMS[type];
     const geometry = new BufferGeometry();
@@ -168,6 +208,10 @@ export function Start() {
     
     logs = createLogs();
     campfire.add(logs);
+    
+    // Add sitting logs
+    const sittingLogs = createSittingLogs();
+    campfire.add(sittingLogs);
     
     fireLight = createFireLight();
     campfire.add(fireLight);
