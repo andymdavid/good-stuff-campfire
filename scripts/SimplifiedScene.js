@@ -1,8 +1,9 @@
-import { Color, PerspectiveCamera, Scene, Vector3, WebGLRenderer, sRGBEncoding, BoxGeometry, Mesh, MeshBasicMaterial, DirectionalLight, AmbientLight, Clock } from "three";
+import { Color, PerspectiveCamera, Scene, Vector3, WebGLRenderer, SRGBColorSpace, BoxGeometry, Mesh, MeshBasicMaterial, DirectionalLight, AmbientLight, Clock } from "three";
 import * as Skybox from "../scene/Skybox.js";
 import * as Ocean from "../scene/Ocean.js";
 import * as Beach from "../scene/Beach.js";
 import * as Campfire from "../scene/Campfire.js";
+import * as Characters from "../scene/Characters.js";
 
 export const body = document.createElement("div");
 export const clock = new Clock();
@@ -63,7 +64,7 @@ export function Start() {
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.autoClearColor = true;
-    renderer.outputEncoding = sRGBEncoding;
+    renderer.outputColorSpace = SRGBColorSpace;
     renderer.setClearColor(0x000033, 1);
     renderer.shadowMap.enabled = true;
     body.appendChild(renderer.domElement);
@@ -91,6 +92,31 @@ export function Start() {
     sunLight.shadow.mapSize.height = 2048;
     scene.add(sunLight);
     scene.add(ambientLight);
+
+    // Initialize and add all scene components
+    try {
+        Skybox.Start();
+        scene.add(Skybox.skybox);
+        console.log("Added Skybox to scene");
+
+        Ocean.Start();
+        scene.add(Ocean.surface);
+        console.log("Added Ocean to scene");
+
+        Beach.Start();
+        scene.add(Beach.beach);
+        console.log("Added Beach to scene");
+
+        Campfire.Start();
+        scene.add(Campfire.campfire);
+        console.log("Added Campfire to scene");
+
+        Characters.Start();
+        scene.add(Characters.charactersGroup);
+        console.log("Added Characters to scene");
+    } catch (error) {
+        console.error("Error during scene component initialization:", error);
+    }
 
     // Simple zoom function with mouse wheel
     window.addEventListener('wheel', function(event) {
@@ -120,42 +146,6 @@ export function Start() {
         camera.updateProjectionMatrix();
     }
 
-    console.log("SimplifiedScene: Starting Skybox");
-    try {
-        Skybox.Start();
-        scene.add(Skybox.skybox);
-        console.log("Skybox added:", Skybox.skybox);
-    } catch (error) {
-        console.error("Error starting Skybox:", error);
-    }
-
-    console.log("SimplifiedScene: Starting Ocean");
-    try {
-        Ocean.Start();
-        scene.add(Ocean.surface);
-        console.log("Ocean added:", Ocean.surface);
-    } catch (error) {
-        console.error("Error starting Ocean:", error);
-    }
-    
-    console.log("SimplifiedScene: Starting Beach");
-    try {
-        Beach.Start();
-        scene.add(Beach.beach);
-        console.log("Beach added:", Beach.beach);
-    } catch (error) {
-        console.error("Error starting Beach:", error);
-    }
-    
-    console.log("SimplifiedScene: Starting Campfire");
-    try {
-        Campfire.Start();
-        scene.add(Campfire.campfire);
-        console.log("Campfire added:", Campfire.campfire);
-    } catch (error) {
-        console.error("Error starting Campfire:", error);
-    }
-    
     console.log("SimplifiedScene: Initialization complete");
 }
 
@@ -179,6 +169,7 @@ export function Update() {
         Ocean.Update();
         Beach.Update();
         Campfire.Update(deltaTime);
+        Characters.Update();
         renderer.render(scene, camera);
     } catch (error) {
         console.error("Error during scene update:", error);
