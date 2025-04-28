@@ -4,6 +4,7 @@ import * as Ocean from "../scene/Ocean.js";
 import * as Beach from "../scene/Beach.js";
 import * as Campfire from "../scene/Campfire.js";
 import * as Characters from "../scene/Characters.js";
+import * as PalmTree from "../scene/PalmTree.js";
 
 export const body = document.createElement("div");
 export const clock = new Clock();
@@ -114,6 +115,10 @@ export function Start() {
         Characters.Start();
         scene.add(Characters.charactersGroup);
         console.log("Added Characters to scene");
+
+        PalmTree.Start();
+        scene.add(PalmTree.palmTree);
+        console.log("Added Palm Tree to scene");
     } catch (error) {
         console.error("Error during scene component initialization:", error);
     }
@@ -170,6 +175,7 @@ export function Update() {
         Beach.Update();
         Campfire.Update(deltaTime);
         Characters.Update();
+        PalmTree.Update();
         renderer.render(scene, camera);
     } catch (error) {
         console.error("Error during scene update:", error);

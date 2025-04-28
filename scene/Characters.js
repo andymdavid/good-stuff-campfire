@@ -14,7 +14,7 @@ import { campfire } from './Campfire.js';
 import { camera } from '../scripts/SimplifiedScene.js';
 
 // Animation configuration
-const FRAME_TIME = 0.5;
+const FRAME_TIME = 0.8;
 const SPRITE_WIDTH = 2.0;
 const SPRITE_HEIGHT = 4.0; // Set to maintain 1:2 aspect ratio
 const UV_INSET = 0.015; // Increased inset (1.5%) to prevent frame bleeding artifacts
