@@ -27,7 +27,7 @@ const CHARACTERS = {
         framesHorizontal: 4,
         framesVertical: 2,
         totalFrames: 8,
-        scale: 0.3, // Reduced scale to match campfire proportions
+        scale: 0.35, // Reduced scale to match campfire proportions
         facingRight: false,
         startFrame: 0 // Start at first frame
     },
@@ -37,7 +37,7 @@ const CHARACTERS = {
         framesHorizontal: 4,
         framesVertical: 2,
         totalFrames: 8,
-        scale: 0.3, // Reduced scale to match campfire proportions
+        scale: 0.35, // Reduced scale to match campfire proportions
         facingRight: true,
         startFrame: 4 // Start halfway through the animation
     }
