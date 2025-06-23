@@ -9,7 +9,7 @@ import * as PalmTree from "../scene/PalmTree.js";
 export const body = document.createElement("div");
 export const clock = new Clock();
 
-export const renderer = new WebGLRenderer({ antialias: true });
+export const renderer = new WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
 export const scene = new Scene();
 export const camera = new PerspectiveCamera();
 

@@ -7,7 +7,12 @@
     <style>
         body { margin: 0; padding: 0; overflow: hidden; background-color: #000; }
         canvas { display: block; width: 100%; height: 100%; }
+        /* Basic styling for buttons */
+        #controls { position: absolute; top: 10px; left: 10px; z-index: 100; }
+        #controls button { margin: 5px; padding: 10px; }
     </style>
+    <!-- REMOVED CCapture.js library -->
+    <!-- <script src="https://unpkg.com/ccapture.js@1.1.0/build/CCapture.all.min.js"></script> -->
     <script type="importmap">
         {
             "imports": {
@@ -17,6 +22,12 @@
     </script>
 </head>
 <body>
+    <!-- Add Controls Div -->
+    <div id="controls">
+        <button id="startButton">Start Recording</button>
+        <button id="stopButton" disabled>Stop Recording</button>
+    </div>
+
     <script type="module">
         import { 
             Clock,
@@ -42,7 +53,7 @@
         camera.position.set(0, 5, 15);
         camera.lookAt(0, 0, 0);
         
-        const renderer = new WebGLRenderer({ antialias: true });
+        const renderer = new WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
         renderer.setPixelRatio(window.devicePixelRatio);
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.setClearColor(0x000033, 1);
@@ -68,6 +79,112 @@
         cube.position.set(0, 0, 0);
         scene.add(cube);
         
+        // MediaRecorder setup
+        let mediaRecorder;
+        let recordedChunks = [];
+        let mediaStream;
+        const startButton = document.getElementById('startButton');
+        const stopButton = document.getElementById('stopButton');
+        const canvasElement = renderer.domElement; // Get the canvas
+
+        startButton.addEventListener('click', () => {
+            console.log('Start button clicked.');
+            if (canvasElement.captureStream) { // Check if captureStream is supported
+                mediaStream = canvasElement.captureStream(30); // Capture at 30 FPS
+
+                // --- Options for MediaRecorder --- 
+                const options = { mimeType: 'video/webm;codecs=vp9' }; // High quality webm
+                // Try other options if webm/vp9 doesn't work:
+                // const options = { mimeType: 'video/webm;codecs=vp8' };
+                // const options = { mimeType: 'video/webm' }; 
+                // const options = { mimeType: 'video/mp4' }; // May not be supported in all browsers for canvas stream
+                
+                try {
+                    mediaRecorder = new MediaRecorder(mediaStream, options);
+                } catch (e) {
+                    console.error('Error creating MediaRecorder:', e);
+                    console.warn('Trying without specific codec...');
+                    try {
+                        mediaRecorder = new MediaRecorder(mediaStream, { mimeType: 'video/webm' });
+                    } catch (e2) {
+                        console.error('Error creating MediaRecorder (fallback): ', e2);
+                        alert('MediaRecorder setup failed. Check console for errors.');
+                        return;
+                    }
+                }
+
+                recordedChunks = []; // Clear previous chunks
+
+                mediaRecorder.ondataavailable = (event) => {
+                    if (event.data.size > 0) {
+                        recordedChunks.push(event.data);
+                        console.log('Data chunk received, size:', event.data.size);
+                    }
+                };
+
+                mediaRecorder.onstop = () => {
+                    console.log('MediaRecorder stopped. Processing chunks...');
+                    const blob = new Blob(recordedChunks, {
+                        type: options.mimeType // Use the same mimeType used for recording
+                    });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    document.body.appendChild(a);
+                    a.style = 'display: none';
+                    a.href = url;
+                    // Generate filename (e.g., recording-timestamp.webm)
+                    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+                    a.download = `recording-${timestamp}.webm`; 
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    document.body.removeChild(a);
+                    console.log('Download link created and clicked.');
+
+                    // Clean up stream tracks
+                    if (mediaStream) {
+                        mediaStream.getTracks().forEach(track => track.stop());
+                        console.log('Media stream tracks stopped.');
+                    }
+                    mediaStream = null;
+                };
+
+                mediaRecorder.onerror = (event) => {
+                    console.error('MediaRecorder error:', event.error);
+                    alert(`MediaRecorder error: ${event.error.name}`);
+                    // Stop recording and disable buttons on error
+                    if (mediaRecorder.state === 'recording') {
+                         mediaRecorder.stop();
+                    }
+                     if (mediaStream) {
+                        mediaStream.getTracks().forEach(track => track.stop());
+                    }
+                    startButton.disabled = false;
+                    stopButton.disabled = true;
+                };
+
+                mediaRecorder.start();
+                console.log('MediaRecorder started, state:', mediaRecorder.state);
+                startButton.disabled = true;
+                stopButton.disabled = false;
+
+            } else {
+                alert('Your browser does not support canvas.captureStream().');
+            }
+        });
+
+        stopButton.addEventListener('click', () => {
+            console.log('Stop button clicked.');
+            if (mediaRecorder && mediaRecorder.state === 'recording') {
+                mediaRecorder.stop(); 
+                // The rest happens in the onstop handler
+            } else {
+                console.log('MediaRecorder not recording or not initialized.');
+            }
+            // Button states are handled in onstop/onerror now
+             startButton.disabled = false;
+             stopButton.disabled = true;
+        });
+
         // Animation loop
         const clock = new Clock();
         

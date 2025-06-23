@@ -41,9 +41,9 @@ const LIGHT_INTENSITY = 5.0;
 const LIGHT_DISTANCE = 15;
 
 // Constants for sitting logs
-const SITTING_LOG_LENGTH = 1.8;
+const SITTING_LOG_LENGTH = 1.6;
 const SITTING_LOG_RADIUS = 0.35;
-const SITTING_LOG_DISTANCE = 2.2; // Distance from campfire center
+const SITTING_LOG_DISTANCE = 2; // Distance from campfire center
 
 // Particle system constants
 const NUM_FIRE_PARTICLES = 100;
@@ -132,12 +132,14 @@ function createSittingLogs() {
     // Create log geometry - slightly larger than campfire logs
     const logGeometry = new CylinderGeometry(SITTING_LOG_RADIUS, SITTING_LOG_RADIUS, SITTING_LOG_LENGTH, 8);
 
-    // Create two logs on either side of the campfire
+    // Always create three logs to support both 2 and 3 sprite modes
     const logPositions = [
-        // Left log for Pete
+        // Left log for Pete (full distance to match right side)
         { pos: new Vector3(-SITTING_LOG_DISTANCE, SITTING_LOG_RADIUS, -1), rot: [0, 0, Math.PI/2] },
         // Right log for Andy
-        { pos: new Vector3(SITTING_LOG_DISTANCE, SITTING_LOG_RADIUS, -1), rot: [0, 0, Math.PI/2] }
+        { pos: new Vector3(SITTING_LOG_DISTANCE, SITTING_LOG_RADIUS, -1), rot: [0, 0, Math.PI/2] },
+        // Back log for Joel (third character)
+        { pos: new Vector3(0, SITTING_LOG_RADIUS, -1 - SITTING_LOG_DISTANCE * 0.8), rot: [0, 0, Math.PI/2] }
     ];
 
     logPositions.forEach(({ pos, rot }) => {
@@ -207,6 +209,7 @@ export function Start() {
     console.log("Campfire: Starting initialization");
     
     logs = createLogs();
+    logs.position.z = 1.5;  // Move burning logs forward (same as fire particles)
     campfire.add(logs);
     
     // Add sitting logs
@@ -221,6 +224,11 @@ export function Start() {
     smokeParticles = createParticleSystem('smoke');
     emberParticles = createParticleSystem('embers');
     
+    // Add these 3 lines to move ONLY the fire forward:
+    fireParticles.position.z = 1.5;  // Moves fire 1 unit closer to camera
+    smokeParticles.position.z = 1.5; // Moves smoke with fire
+    emberParticles.position.z = 1.5; // Moves embers with fire
+
     campfire.add(fireParticles);
     campfire.add(smokeParticles);
     campfire.add(emberParticles);

@@ -330,3 +330,21 @@ a:visited
     color: #03c;
     text-decoration: none;
 }
+
+/* Styles for recording buttons */
+#controls {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 100;
+}
+
+div#controls > button {
+    margin: 5px;
+    padding: 10px;
+    position: relative;
+    width: auto;
+    height: auto;
+    top: auto;
+    right: auto;
+}

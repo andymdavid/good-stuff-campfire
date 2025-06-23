@@ -19,38 +19,129 @@ const SPRITE_WIDTH = 2.0;
 const SPRITE_HEIGHT = 4.0; // Set to maintain 1:2 aspect ratio
 const UV_INSET = 0.015; // Increased inset (1.5%) to prevent frame bleeding artifacts
 
-// Character configurations
-const CHARACTERS = {
+// SPRITE CONFIGURATION - Easy to change for different episodes
+let SPRITE_COUNT = 2; // Default to 2 sprites - change this for different episodes
+
+// Configuration methods for sprite count
+function initializeSpriteCount() {
+    // Method 1: URL Parameter (highest priority)
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlSpriteCount = urlParams.get('sprites');
+    if (urlSpriteCount && (urlSpriteCount === '2' || urlSpriteCount === '3')) {
+        SPRITE_COUNT = parseInt(urlSpriteCount);
+        console.log(`Sprite count set from URL parameter: ${SPRITE_COUNT}`);
+        return;
+    }
+    
+    // Method 2: Local Storage (second priority)
+    const storedSpriteCount = localStorage.getItem('campfire-sprite-count');
+    if (storedSpriteCount && (storedSpriteCount === '2' || storedSpriteCount === '3')) {
+        SPRITE_COUNT = parseInt(storedSpriteCount);
+        console.log(`Sprite count set from localStorage: ${SPRITE_COUNT}`);
+        return;
+    }
+    
+    // Method 3: Default from config variable (already set above)
+    console.log(`Using default sprite count: ${SPRITE_COUNT}`);
+}
+
+// Keyboard shortcut handler
+function setupKeyboardShortcuts() {
+    document.addEventListener('keydown', (event) => {
+        // Press '2' or '3' to change sprite count (only works before recording)
+        if (event.key === '2' || event.key === '3') {
+            const newCount = parseInt(event.key);
+            if (newCount !== SPRITE_COUNT) {
+                SPRITE_COUNT = newCount;
+                localStorage.setItem('campfire-sprite-count', newCount.toString());
+                console.log(`Sprite count changed to: ${SPRITE_COUNT} (saved to localStorage)`);
+                console.log('Reload the page to see the change');
+            }
+        }
+    });
+}
+
+// Character configurations - now including Joel
+const ALL_CHARACTERS = {
     pete: {
         textureFile: 'images/PeteSprite.png',
-        position: new Vector3(-1, SPRITE_HEIGHT/2, 5), // Moved further from campfire
         framesHorizontal: 4,
         framesVertical: 2,
         totalFrames: 8,
-        scale: 0.35, // Reduced scale to match campfire proportions
+        scale: 0.60,
         facingRight: false,
-        startFrame: 0 // Start at first frame
+        startFrame: 0
     },
     andy: {
         textureFile: 'images/AndySprite.png',
-        position: new Vector3(1, SPRITE_HEIGHT/2, 5), // Moved further from campfire
         framesHorizontal: 4,
         framesVertical: 2,
         totalFrames: 8,
-        scale: 0.35, // Reduced scale to match campfire proportions
+        scale: 0.60,
         facingRight: true,
-        startFrame: 4 // Start halfway through the animation
+        startFrame: 4
+    },
+    joel: {
+        textureFile: 'images/JoelSprite.png',
+        framesHorizontal: 4,
+        framesVertical: 2,
+        totalFrames: 8,
+        scale: 0.55,
+        facingRight: false,
+        startFrame: 2 // Different start frame for variety
     }
 };
+
+// Dynamic positioning function
+function calculateSpritePositions(count) {
+    const DISTANCE_FROM_CAMPFIRE = 1.6; // Match sitting log distance
+    const SITTING_HEIGHT = 1.5; // Lowered further to sit properly on logs
+    const Z_OFFSET = 1; // Z position relative to campfire (logs are at Z = -1, so this puts sprites at Z = 2)
+    
+    if (count === 2) {
+        // Original positioning: across from each other
+        return [
+            new Vector3(-DISTANCE_FROM_CAMPFIRE, SITTING_HEIGHT, Z_OFFSET),
+            new Vector3(DISTANCE_FROM_CAMPFIRE, SITTING_HEIGHT, Z_OFFSET)
+        ];
+    } else if (count === 3) {
+        // Triangle arrangement, avoiding palm tree on left (-4, 0, 2)
+        // Palm tree is at angle ~225° from campfire, so avoid that area
+        const positions = [];
+        
+        // Character 1: Front-left position (full distance to match right side spacing)
+        positions.push(new Vector3(-DISTANCE_FROM_CAMPFIRE, SITTING_HEIGHT, Z_OFFSET));
+        
+        // Character 2: Front-right position
+        positions.push(new Vector3(DISTANCE_FROM_CAMPFIRE, SITTING_HEIGHT, Z_OFFSET));
+        
+        // Character 3: Back-center position (further from camera)
+        positions.push(new Vector3(0, SITTING_HEIGHT, Z_OFFSET - DISTANCE_FROM_CAMPFIRE * 0.8));
+        
+        return positions;
+    }
+    
+    return [];
+}
+
+// Get character configurations based on sprite count
+function getActiveCharacters(count) {
+    if (count === 2) {
+        return ['pete', 'andy'];
+    } else if (count === 3) {
+        return ['pete', 'andy', 'joel'];
+    }
+    return [];
+}
 
 export const charactersGroup = new Group();
 const textureLoader = new TextureLoader();
 const clock = new Clock();
 
 class Character {
-    constructor(config) {
+    constructor(config, position) {
         this.config = config;
-        this.currentFrame = config.startFrame || 0; // Initialize with startFrame if provided, otherwise 0
+        this.currentFrame = config.startFrame || 0;
         this.frameTime = 0;
         
         // Create plane geometry for the sprite with 1:2 aspect ratio
@@ -61,7 +152,7 @@ class Character {
         this.texture.magFilter = NearestFilter;
         this.texture.minFilter = NearestFilter;
         this.texture.flipY = false;
-        this.texture.encoding = sRGBEncoding; // Ensure correct color space
+        this.texture.encoding = sRGBEncoding;
         
         // Create material with proper transparency and color settings
         this.material = new MeshBasicMaterial({
@@ -76,8 +167,8 @@ class Character {
         // Create mesh
         this.mesh = new Mesh(geometry, this.material);
         
-        // Set initial position and scale
-        this.mesh.position.copy(config.position);
+        // Set position (passed in from positioning system)
+        this.mesh.position.copy(position);
         this.mesh.scale.set(
             config.facingRight ? -config.scale : config.scale,
             config.scale,
@@ -146,29 +237,54 @@ class Character {
     }
 }
 
-let pete, andy;
+let activeCharacters = [];
 
 export function Start() {
     console.log("Characters: Starting initialization");
     
-    // Create characters
-    pete = new Character(CHARACTERS.pete);
-    andy = new Character(CHARACTERS.andy);
+    // Initialize sprite count from various sources
+    initializeSpriteCount();
     
-    // Add to group
-    charactersGroup.add(pete.mesh);
-    charactersGroup.add(andy.mesh);
+    // Setup keyboard shortcuts
+    setupKeyboardShortcuts();
+    
+    // Get character names and positions based on sprite count
+    const characterNames = getActiveCharacters(SPRITE_COUNT);
+    const positions = calculateSpritePositions(SPRITE_COUNT);
+    
+    console.log(`Creating ${SPRITE_COUNT} characters:`, characterNames);
+    console.log('Positions:', positions);
+    
+    // Create characters dynamically
+    activeCharacters = [];
+    for (let i = 0; i < characterNames.length; i++) {
+        const characterName = characterNames[i];
+        const config = ALL_CHARACTERS[characterName];
+        const position = positions[i];
+        
+        if (config && position) {
+            const character = new Character(config, position);
+            activeCharacters.push(character);
+            charactersGroup.add(character.mesh);
+            console.log(`Created character: ${characterName} at position:`, position);
+        }
+    }
     
     // Position group relative to campfire
     charactersGroup.position.copy(campfire.position);
     
-    console.log("Characters: Initialization complete");
+    console.log(`Characters: Initialization complete with ${activeCharacters.length} characters`);
+    console.log('Controls:');
+    console.log('- URL parameter: ?sprites=2 or ?sprites=3');
+    console.log('- Keyboard: Press 2 or 3 to change count (saves to localStorage)');
+    console.log('- Config: Change SPRITE_COUNT variable at top of Characters.js');
 }
 
 export function Update() {
     const deltaTime = clock.getDelta();
     
-    // Update character animations
-    if (pete) pete.update(deltaTime);
-    if (andy) andy.update(deltaTime);
+    // Update all active character animations
+    activeCharacters.forEach(character => {
+        if (character) character.update(deltaTime);
+    });
 } 
