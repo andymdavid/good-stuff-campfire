@@ -132,15 +132,25 @@ function createSittingLogs() {
     // Create log geometry - slightly larger than campfire logs
     const logGeometry = new CylinderGeometry(SITTING_LOG_RADIUS, SITTING_LOG_RADIUS, SITTING_LOG_LENGTH, 8);
 
-    // Always create three logs to support both 2 and 3 sprite modes
+    // Check sprite count from URL parameter
+    const urlParams = new URLSearchParams(window.location.search);
+    const spriteCount = urlParams.get('sprites') === '3' ? 3 : 2;
+
+    // Create logs based on sprite count
     const logPositions = [
         // Left log for Pete (full distance to match right side)
         { pos: new Vector3(-SITTING_LOG_DISTANCE, SITTING_LOG_RADIUS, -1), rot: [0, 0, Math.PI/2] },
         // Right log for Andy
-        { pos: new Vector3(SITTING_LOG_DISTANCE, SITTING_LOG_RADIUS, -1), rot: [0, 0, Math.PI/2] },
-        // Back log for Joel (third character)
-        { pos: new Vector3(0, SITTING_LOG_RADIUS, -1 - SITTING_LOG_DISTANCE * 0.8), rot: [0, 0, Math.PI/2] }
+        { pos: new Vector3(SITTING_LOG_DISTANCE, SITTING_LOG_RADIUS, -1), rot: [0, 0, Math.PI/2] }
     ];
+
+    // Only add back log if we have 3 sprites
+    if (spriteCount === 3) {
+        logPositions.push({
+            pos: new Vector3(0, SITTING_LOG_RADIUS, -1 - SITTING_LOG_DISTANCE * 0.8), 
+            rot: [0, 0, Math.PI/2]
+        });
+    }
 
     logPositions.forEach(({ pos, rot }) => {
         const log = new Mesh(logGeometry, logMaterial);

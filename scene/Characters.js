@@ -17,7 +17,7 @@ import { camera } from '../scripts/SimplifiedScene.js';
 const FRAME_TIME = 0.8;
 const SPRITE_WIDTH = 2.0;
 const SPRITE_HEIGHT = 4.0; // Set to maintain 1:2 aspect ratio
-const UV_INSET = 0.015; // Increased inset (1.5%) to prevent frame bleeding artifacts
+const UV_INSET = 0.01; // Increased inset (1.5%) to prevent frame bleeding artifacts
 
 // SPRITE CONFIGURATION - Easy to change for different episodes
 let SPRITE_COUNT = 2; // Default to 2 sprites - change this for different episodes
@@ -68,7 +68,7 @@ const ALL_CHARACTERS = {
         framesHorizontal: 4,
         framesVertical: 2,
         totalFrames: 8,
-        scale: 0.60,
+        scale: 0.63,
         facingRight: false,
         startFrame: 0
     },
@@ -77,7 +77,7 @@ const ALL_CHARACTERS = {
         framesHorizontal: 4,
         framesVertical: 2,
         totalFrames: 8,
-        scale: 0.60,
+        scale: 0.63,
         facingRight: true,
         startFrame: 4
     },
@@ -86,7 +86,7 @@ const ALL_CHARACTERS = {
         framesHorizontal: 4,
         framesVertical: 2,
         totalFrames: 8,
-        scale: 0.55,
+        scale: 0.52,
         facingRight: false,
         startFrame: 2 // Different start frame for variety
     }
@@ -116,7 +116,7 @@ function calculateSpritePositions(count) {
         positions.push(new Vector3(DISTANCE_FROM_CAMPFIRE, SITTING_HEIGHT, Z_OFFSET));
         
         // Character 3: Back-center position (further from camera)
-        positions.push(new Vector3(0, SITTING_HEIGHT, Z_OFFSET - DISTANCE_FROM_CAMPFIRE * 0.8));
+        positions.push(new Vector3(0, SITTING_HEIGHT, Z_OFFSET - DISTANCE_FROM_CAMPFIRE * 0.4));
         
         return positions;
     }
