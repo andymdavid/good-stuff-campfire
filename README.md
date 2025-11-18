@@ -56,11 +56,7 @@ If you're using Visual Studio Code:
 
 ## Switching Between Character States
 
-You can configure the number of characters (2, 3, or 4) in three different ways:
-
-### Method 1: URL Parameter (Recommended for Quick Testing)
-
-Add `?sprites=X` to the URL where X is 2, 3, or 4:
+To configure the number of characters (2, 3, or 4), add a URL parameter to the end of the URL:
 
 ```
 http://localhost:8000/?sprites=2  # Two characters
@@ -68,28 +64,9 @@ http://localhost:8000/?sprites=3  # Three characters
 http://localhost:8000/?sprites=4  # Four characters
 ```
 
-### Method 2: Keyboard Shortcuts (Saves Your Preference)
-
-While the scene is running, press:
-- `2` - Switch to 2 characters
-- `3` - Switch to 3 characters
-- `4` - Switch to 4 characters
-
-**Note**: After pressing a number key, you must reload the page to see the change. Your preference will be saved to localStorage and persist across sessions.
-
-### Method 3: Edit Configuration File
-
-For a permanent default setting, edit `scene/Characters.js`:
-
-```javascript
-// Line 23
-let SPRITE_COUNT = 2; // Change this to 2, 3, or 4
-```
-
 ## Controls
 
 - **Mouse Wheel**: Zoom in/out
-- **2/3/4 Keys**: Change character count (requires page reload)
 
 ## Technical Details
 
