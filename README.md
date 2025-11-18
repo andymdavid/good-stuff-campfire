@@ -63,9 +63,9 @@ You can configure the number of characters (2, 3, or 4) in three different ways:
 Add `?sprites=X` to the URL where X is 2, 3, or 4:
 
 ```
-http://localhost:8000/?sprites=2  # Two characters (Pete & Andy)
-http://localhost:8000/?sprites=3  # Three characters (Pete, Andy & Joel)
-http://localhost:8000/?sprites=4  # Four characters (Pete, Andy, Gabe & Bill)
+http://localhost:8000/?sprites=2  # Two characters
+http://localhost:8000/?sprites=3  # Three characters
+http://localhost:8000/?sprites=4  # Four characters
 ```
 
 ### Method 2: Keyboard Shortcuts (Saves Your Preference)
@@ -101,8 +101,8 @@ The scene includes:
 - Minimal camera system with zoom control
 - Dynamic character positioning based on count
 
-## Characters
+## Character Arrangements
 
-- **2 Characters**: Pete & Andy (sitting across from each other)
-- **3 Characters**: Pete, Andy & Joel (triangle arrangement)
-- **4 Characters**: Pete, Andy, Gabe & Bill (two rows)
+- **2 Characters**: Sitting across from each other
+- **3 Characters**: Triangle arrangement
+- **4 Characters**: Two rows (2 front, 2 back)
