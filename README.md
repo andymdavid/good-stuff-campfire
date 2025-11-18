@@ -1,28 +1,108 @@
 # The Good Stuff Campfire - Background Ocean Scene
 
-This is a simplified Three.js ocean scene that serves as a beautiful background for video content. The scene focuses on rendering a realistic ocean with day/night cycle.
+This is a simplified Three.js ocean scene that serves as a beautiful background for video content. The scene features a realistic ocean with day/night cycle and an animated campfire with configurable character sprites.
 
 ## Features
 
 - Realistic ocean surface with waves and reflections
-- Dynamic sky with day/night cycle
+- Dynamic sky with day/night cycle and stars
+- Animated campfire with character sprites
+- Configurable number of characters (2, 3, or 4)
 - Simple camera controls (mousewheel to zoom in/out)
 - Optimized for use as video background
 
+## Getting Started
+
+### Prerequisites
+
+This project uses ES6 modules, so it needs to be served over HTTP (not opened directly as a file).
+
+### Running the Project
+
+#### Option 1: Python Simple HTTP Server (Recommended)
+
+If you have Python installed (comes pre-installed on macOS):
+
+```bash
+# Python 3
+python3 -m http.server 8000
+
+# Python 2
+python -m SimpleHTTPServer 8000
+```
+
+Then open your browser to: `http://localhost:8000`
+
+#### Option 2: Node.js HTTP Server
+
+If you have Node.js installed:
+
+```bash
+# Install http-server globally (one-time)
+npm install -g http-server
+
+# Run the server
+http-server -p 8000
+```
+
+Then open your browser to: `http://localhost:8000`
+
+#### Option 3: VS Code Live Server
+
+If you're using Visual Studio Code:
+1. Install the "Live Server" extension
+2. Right-click on `index.html`
+3. Select "Open with Live Server"
+
+## Switching Between Character States
+
+You can configure the number of characters (2, 3, or 4) in three different ways:
+
+### Method 1: URL Parameter (Recommended for Quick Testing)
+
+Add `?sprites=X` to the URL where X is 2, 3, or 4:
+
+```
+http://localhost:8000/?sprites=2  # Two characters (Pete & Andy)
+http://localhost:8000/?sprites=3  # Three characters (Pete, Andy & Joel)
+http://localhost:8000/?sprites=4  # Four characters (Pete, Andy, Gabe & Bill)
+```
+
+### Method 2: Keyboard Shortcuts (Saves Your Preference)
+
+While the scene is running, press:
+- `2` - Switch to 2 characters
+- `3` - Switch to 3 characters
+- `4` - Switch to 4 characters
+
+**Note**: After pressing a number key, you must reload the page to see the change. Your preference will be saved to localStorage and persist across sessions.
+
+### Method 3: Edit Configuration File
+
+For a permanent default setting, edit `scene/Characters.js`:
+
+```javascript
+// Line 23
+let SPRITE_COUNT = 2; // Change this to 2, 3, or 4
+```
+
+## Controls
+
+- **Mouse Wheel**: Zoom in/out
+- **2/3/4 Keys**: Change character count (requires page reload)
+
 ## Technical Details
 
-The scene has been simplified to include only the essential components:
-
+The scene includes:
 - Ocean rendering with surface and volume
 - Sky system with day/night cycle and stars
+- Animated campfire with realistic flames
+- Character sprite system with frame-based animation
 - Minimal camera system with zoom control
-- No game mechanics or complex interactions
+- Dynamic character positioning based on count
 
-## Usage
+## Characters
 
-1. Open `index.html` in a web browser
-2. The scene will automatically render with the ocean and sky
-3. Use the mousewheel to zoom in/out if needed
-4. The day/night cycle will progress automatically
-
-This project is designed to serve as a background for a campfire scene with two characters.
+- **2 Characters**: Pete & Andy (sitting across from each other)
+- **3 Characters**: Pete, Andy & Joel (triangle arrangement)
+- **4 Characters**: Pete, Andy, Gabe & Bill (two rows)
