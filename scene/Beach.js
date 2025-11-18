@@ -138,9 +138,8 @@ export function Update() {
     const nightColor = new Color(0x7a6a4f); // Darker, cooler sand color for night
     material.color.lerpColors(nightColor, dayColor, sunIntensity);
     
-    if (beach.parent) {
-        console.log("Beach position:", beach.position);
-    } else {
-        console.warn("Beach not in scene!");
-    }
-} 
+    // Avoid spamming console every frame; uncomment for debugging positioning issues
+    // if (!beach.parent) {
+    //     console.warn("Beach not in scene!");
+    // }
+}

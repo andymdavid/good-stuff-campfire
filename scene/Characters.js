@@ -27,7 +27,7 @@ function initializeSpriteCount() {
     // Method 1: URL Parameter (highest priority)
     const urlParams = new URLSearchParams(window.location.search);
     const urlSpriteCount = urlParams.get('sprites');
-    if (urlSpriteCount && (urlSpriteCount === '2' || urlSpriteCount === '3')) {
+    if (urlSpriteCount && (['2', '3', '4'].includes(urlSpriteCount))) {
         SPRITE_COUNT = parseInt(urlSpriteCount);
         console.log(`Sprite count set from URL parameter: ${SPRITE_COUNT}`);
         return;
@@ -35,7 +35,7 @@ function initializeSpriteCount() {
     
     // Method 2: Local Storage (second priority)
     const storedSpriteCount = localStorage.getItem('campfire-sprite-count');
-    if (storedSpriteCount && (storedSpriteCount === '2' || storedSpriteCount === '3')) {
+    if (storedSpriteCount && (['2', '3', '4'].includes(storedSpriteCount))) {
         SPRITE_COUNT = parseInt(storedSpriteCount);
         console.log(`Sprite count set from localStorage: ${SPRITE_COUNT}`);
         return;
@@ -48,8 +48,8 @@ function initializeSpriteCount() {
 // Keyboard shortcut handler
 function setupKeyboardShortcuts() {
     document.addEventListener('keydown', (event) => {
-        // Press '2' or '3' to change sprite count (only works before recording)
-        if (event.key === '2' || event.key === '3') {
+        // Press '2', '3', or '4' to change sprite count (only works before recording)
+        if (['2', '3', '4'].includes(event.key)) {
             const newCount = parseInt(event.key);
             if (newCount !== SPRITE_COUNT) {
                 SPRITE_COUNT = newCount;
@@ -61,7 +61,7 @@ function setupKeyboardShortcuts() {
     });
 }
 
-// Character configurations - now including Joel
+// Character configurations - now including Joel (duplicated for 4th seat when needed)
 const ALL_CHARACTERS = {
     pete: {
         textureFile: 'images/PeteSprite.png',
@@ -89,6 +89,24 @@ const ALL_CHARACTERS = {
         scale: 0.52,
         facingRight: false,
         startFrame: 2 // Different start frame for variety
+    },
+    gabe: {
+        textureFile: 'images/Gabe-Sprite.png',
+        framesHorizontal: 4,
+        framesVertical: 2,
+        totalFrames: 8,
+        scale: 0.52,
+        facingRight: false,
+        startFrame: 2
+    },
+    bill: {
+        textureFile: 'images/Bill-Sprite.png',
+        framesHorizontal: 4,
+        framesVertical: 2,
+        totalFrames: 8,
+        scale: 0.52,
+        facingRight: true,
+        startFrame: 2
     }
 };
 
@@ -104,23 +122,31 @@ function calculateSpritePositions(count) {
             new Vector3(-DISTANCE_FROM_CAMPFIRE, SITTING_HEIGHT, Z_OFFSET),
             new Vector3(DISTANCE_FROM_CAMPFIRE, SITTING_HEIGHT, Z_OFFSET)
         ];
-    } else if (count === 3) {
+    }
+
+    if (count === 3) {
         // Triangle arrangement, avoiding palm tree on left (-4, 0, 2)
         // Palm tree is at angle ~225° from campfire, so avoid that area
-        const positions = [];
-        
-        // Character 1: Front-left position (full distance to match right side spacing)
-        positions.push(new Vector3(-DISTANCE_FROM_CAMPFIRE, SITTING_HEIGHT, Z_OFFSET));
-        
-        // Character 2: Front-right position
-        positions.push(new Vector3(DISTANCE_FROM_CAMPFIRE, SITTING_HEIGHT, Z_OFFSET));
-        
-        // Character 3: Back-center position (further from camera)
-        positions.push(new Vector3(0, SITTING_HEIGHT, Z_OFFSET - DISTANCE_FROM_CAMPFIRE * 0.4));
-        
-        return positions;
+        return [
+            new Vector3(-DISTANCE_FROM_CAMPFIRE, SITTING_HEIGHT, Z_OFFSET),
+            new Vector3(DISTANCE_FROM_CAMPFIRE, SITTING_HEIGHT, Z_OFFSET),
+            new Vector3(0, SITTING_HEIGHT, Z_OFFSET - DISTANCE_FROM_CAMPFIRE * 0.4)
+        ];
     }
-    
+
+    if (count === 4) {
+        // Back row splits into two seats; keep front seats unchanged
+        const backRowZ = Z_OFFSET - DISTANCE_FROM_CAMPFIRE * 0.4;
+        const backRowXOffset = DISTANCE_FROM_CAMPFIRE * 0.35; // Slightly closer together to avoid overlap when turning
+
+        return [
+            new Vector3(-DISTANCE_FROM_CAMPFIRE, SITTING_HEIGHT, Z_OFFSET), // Front-left
+            new Vector3(DISTANCE_FROM_CAMPFIRE, SITTING_HEIGHT, Z_OFFSET),  // Front-right
+            new Vector3(-backRowXOffset, SITTING_HEIGHT, backRowZ),         // Back-left
+            new Vector3(backRowXOffset, SITTING_HEIGHT, backRowZ)           // Back-right
+        ];
+    }
+
     return [];
 }
 
@@ -128,9 +154,16 @@ function calculateSpritePositions(count) {
 function getActiveCharacters(count) {
     if (count === 2) {
         return ['pete', 'andy'];
-    } else if (count === 3) {
+    }
+
+    if (count === 3) {
         return ['pete', 'andy', 'joel'];
     }
+
+    if (count === 4) {
+        return ['pete', 'andy', 'gabe', 'bill'];
+    }
+
     return [];
 }
 
@@ -275,8 +308,8 @@ export function Start() {
     
     console.log(`Characters: Initialization complete with ${activeCharacters.length} characters`);
     console.log('Controls:');
-    console.log('- URL parameter: ?sprites=2 or ?sprites=3');
-    console.log('- Keyboard: Press 2 or 3 to change count (saves to localStorage)');
+    console.log('- URL parameter: ?sprites=2, ?sprites=3, or ?sprites=4');
+    console.log('- Keyboard: Press 2, 3, or 4 to change count (saves to localStorage)');
     console.log('- Config: Change SPRITE_COUNT variable at top of Characters.js');
 }
 

@@ -132,28 +132,43 @@ function createSittingLogs() {
     // Create log geometry - slightly larger than campfire logs
     const logGeometry = new CylinderGeometry(SITTING_LOG_RADIUS, SITTING_LOG_RADIUS, SITTING_LOG_LENGTH, 8);
 
-    // Check sprite count from URL parameter
+    // Check sprite count from URL parameter (supports 2/3/4)
     const urlParams = new URLSearchParams(window.location.search);
-    const spriteCount = urlParams.get('sprites') === '3' ? 3 : 2;
+    const spriteParam = urlParams.get('sprites');
+    const spriteCount = spriteParam ? Math.max(2, Math.min(4, parseInt(spriteParam))) : 2;
 
-    // Create logs based on sprite count
+    // Base logs (front left/right) stay fixed for all counts
     const logPositions = [
-        // Left log for Pete (full distance to match right side)
-        { pos: new Vector3(-SITTING_LOG_DISTANCE, SITTING_LOG_RADIUS, -1), rot: [0, 0, Math.PI/2] },
-        // Right log for Andy
-        { pos: new Vector3(SITTING_LOG_DISTANCE, SITTING_LOG_RADIUS, -1), rot: [0, 0, Math.PI/2] }
+        { pos: new Vector3(-SITTING_LOG_DISTANCE, SITTING_LOG_RADIUS, -1), rot: [0, 0, Math.PI/2], lengthScale: 1 },
+        { pos: new Vector3(SITTING_LOG_DISTANCE, SITTING_LOG_RADIUS, -1), rot: [0, 0, Math.PI/2], lengthScale: 1 }
     ];
 
-    // Only add back log if we have 3 sprites
     if (spriteCount === 3) {
+        // Single back log
         logPositions.push({
             pos: new Vector3(0, SITTING_LOG_RADIUS, -1 - SITTING_LOG_DISTANCE * 0.8), 
-            rot: [0, 0, Math.PI/2]
+            rot: [0, 0, Math.PI/2],
+            lengthScale: 1
         });
+    } else if (spriteCount === 4) {
+        // Split the back log into two half-length benches
+        const backZ = -1 - SITTING_LOG_DISTANCE * 0.8;
+        const backXOffset = SITTING_LOG_DISTANCE * 0.35; // Pull slightly inward to reduce overlap when characters turn
+
+        // Slightly longer than half-length to give two people more room
+        const backLengthScale = 0.5 * 1.15; // +15%
+        logPositions.push(
+            { pos: new Vector3(-backXOffset, SITTING_LOG_RADIUS, backZ), rot: [0, 0, Math.PI/2], lengthScale: backLengthScale },
+            { pos: new Vector3(backXOffset, SITTING_LOG_RADIUS, backZ), rot: [0, 0, Math.PI/2], lengthScale: backLengthScale }
+        );
     }
 
-    logPositions.forEach(({ pos, rot }) => {
-        const log = new Mesh(logGeometry, logMaterial);
+    logPositions.forEach(({ pos, rot, lengthScale }) => {
+        // Use a scaled geometry per log to allow half-length benches when needed
+        const scaledGeometry = logGeometry.clone();
+        scaledGeometry.scale(1, lengthScale, 1);
+
+        const log = new Mesh(scaledGeometry, logMaterial);
         log.position.copy(pos);
         log.rotation.set(...rot);
         log.castShadow = true;
