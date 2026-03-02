@@ -62,8 +62,8 @@ function createPanelDOM() {
     nav.className = 'panel-nav';
 
     const tabs = [
-        { id: 'scene', label: 'Scene Setup', icon: '🎬' },
-        { id: 'sprites', label: 'Sprite Creator', icon: '✨' }
+        { id: 'scene', label: 'Scene Setup' },
+        { id: 'sprites', label: 'Sprite Creator' }
     ];
 
     tabs.forEach(tab => {
@@ -71,17 +71,7 @@ function createPanelDOM() {
         navItem.className = 'nav-item' + (tab.id === 'scene' ? ' active' : '');
         navItem.setAttribute('data-tab', tab.id);
         navItem.onclick = () => switchTab(tab.id);
-
-        const icon = document.createElement('span');
-        icon.className = 'nav-icon';
-        icon.textContent = tab.icon;
-
-        const label = document.createElement('span');
-        label.className = 'nav-label';
-        label.textContent = tab.label;
-
-        navItem.appendChild(icon);
-        navItem.appendChild(label);
+        navItem.textContent = tab.label;
         nav.appendChild(navItem);
     });
 
@@ -259,7 +249,7 @@ function createSpriteCreatorTab() {
 
     const placeholderIcon = document.createElement('div');
     placeholderIcon.className = 'placeholder-icon';
-    placeholderIcon.textContent = '✨';
+    placeholderIcon.textContent = '';
 
     const placeholderText = document.createElement('p');
     placeholderText.className = 'placeholder-text';
