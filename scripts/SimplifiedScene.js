@@ -6,8 +6,12 @@ import * as Campfire from "../scene/Campfire.js";
 import * as Characters from "../scene/Characters.js";
 import * as PalmTree from "../scene/PalmTree.js";
 
-export const body = document.createElement("div");
+export let body = null;
 export const clock = new Clock();
+
+let isInitialized = false;
+let wheelHandler = null;
+let resizeHandler = null;
 
 export const renderer = new WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
 export const scene = new Scene();
@@ -58,7 +62,15 @@ export function SetAntialias(value) {
 }
 
 export function Start() {
+    if (isInitialized) {
+        console.warn("SimplifiedScene: Already initialized");
+        return;
+    }
+
     console.log("SimplifiedScene: Start initialization");
+
+    // Create body container
+    body = document.createElement("div");
     document.body.appendChild(body);
 
     // Create a new renderer with proper settings
@@ -69,19 +81,19 @@ export function Start() {
     renderer.setClearColor(0x000033, 1);
     renderer.shadowMap.enabled = true;
     body.appendChild(renderer.domElement);
-    
+
     console.log("Renderer initialized:", renderer);
-    
+
     // Set scene background
     scene.background = new Color(0x000033);
-    
+
     // Setup camera
     camera.fov = fov;
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.near = 0.3;
     camera.far = 4000;
     camera.updateProjectionMatrix();
-    
+
     // Set camera to fixed position looking at the scene
     camera.position.copy(CAMERA_POSITION);
     camera.lookAt(CAMERA_LOOK_AT);
@@ -124,34 +136,92 @@ export function Start() {
     }
 
     // Simple zoom function with mouse wheel
-    window.addEventListener('wheel', function(event) {
+    wheelHandler = function(event) {
         const zoomSpeed = 0.5;
         const zoomDirection = event.deltaY > 0 ? 1 : -1;
         const newPos = camera.position.clone();
-        
+
         // Move camera closer or further along its forward vector
         newPos.add(cameraForward.clone().multiplyScalar(zoomDirection * zoomSpeed));
-        
+
         // Limit how close/far the camera can go
         const distance = newPos.distanceTo(CAMERA_LOOK_AT);
         if (distance > 3 && distance < 15) {
             camera.position.copy(newPos);
         }
-        
+
         camera.lookAt(CAMERA_LOOK_AT);
         UpdateCameraRotation();
-    });
+    };
+    window.addEventListener('wheel', wheelHandler);
 
-    window.onresize = function() {
+    resizeHandler = function() {
         const width = window.innerWidth;
         const height = window.innerHeight;
-        
+
         renderer.setSize(width, height);
         camera.aspect = width / height;
         camera.updateProjectionMatrix();
+    };
+    window.addEventListener('resize', resizeHandler);
+
+    isInitialized = true;
+    console.log("SimplifiedScene: Initialization complete");
+}
+
+export function Destroy() {
+    if (!isInitialized) {
+        console.warn("SimplifiedScene: Not initialized, nothing to destroy");
+        return;
     }
 
-    console.log("SimplifiedScene: Initialization complete");
+    console.log("SimplifiedScene: Destroying scene");
+
+    // Remove event listeners
+    if (wheelHandler) {
+        window.removeEventListener('wheel', wheelHandler);
+        wheelHandler = null;
+    }
+    if (resizeHandler) {
+        window.removeEventListener('resize', resizeHandler);
+        resizeHandler = null;
+    }
+
+    // Dispose of scene objects
+    scene.traverse((object) => {
+        if (object.geometry) {
+            object.geometry.dispose();
+        }
+        if (object.material) {
+            if (Array.isArray(object.material)) {
+                object.material.forEach(m => {
+                    if (m.map) m.map.dispose();
+                    m.dispose();
+                });
+            } else {
+                if (object.material.map) object.material.map.dispose();
+                object.material.dispose();
+            }
+        }
+    });
+
+    // Clear scene
+    while (scene.children.length > 0) {
+        scene.remove(scene.children[0]);
+    }
+
+    // Remove renderer from DOM
+    if (body && body.parentNode) {
+        body.parentNode.removeChild(body);
+    }
+    body = null;
+
+    // Reset camera position for next start
+    camera.position.copy(CAMERA_POSITION);
+    camera.lookAt(CAMERA_LOOK_AT);
+
+    isInitialized = false;
+    console.log("SimplifiedScene: Destroyed");
 }
 
 let frameCount = 0;
