@@ -373,7 +373,7 @@ div#controls > button {
     border-right: 1px solid #222;
     display: flex;
     flex-direction: column;
-    padding: 24px 0;
+    padding: 32px 0;
 }
 
 .panel-logo {
@@ -381,15 +381,15 @@ div#controls > button {
     font-weight: 700;
     color: #fff;
     padding: 0 24px;
-    margin-bottom: 32px;
+    margin-bottom: 40px;
     letter-spacing: -0.5px;
 }
 
 .panel-nav {
     display: flex;
     flex-direction: column;
-    gap: 4px;
-    padding: 0 12px;
+    gap: 8px;
+    padding: 0 16px;
 }
 
 .nav-item {
@@ -446,13 +446,13 @@ div#controls > button {
     display: flex;
     flex-direction: column;
     height: 100%;
-    max-width: 600px;
+    max-width: 640px;
     margin: 0 auto;
-    padding: 48px 32px;
+    padding: 56px 40px;
 }
 
 .tab-header {
-    margin-bottom: 32px;
+    margin-bottom: 40px;
 }
 
 .tab-title {
@@ -472,18 +472,18 @@ div#controls > button {
     flex: 1;
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 24px;
 }
 
 .tab-footer {
-    margin-top: 32px;
-    padding-top: 24px;
+    margin-top: 40px;
+    padding-top: 32px;
     border-top: 1px solid #1a1a1a;
     text-align: center;
 }
 
 .footer-hint {
-    margin-top: 12px;
+    margin-top: 16px;
     font-size: 12px;
     color: #444;
 }
@@ -493,7 +493,7 @@ div#controls > button {
     background-color: #111;
     border: 1px solid #1a1a1a;
     border-radius: 12px;
-    padding: 20px;
+    padding: 24px;
 }
 
 .card-label {
@@ -502,14 +502,14 @@ div#controls > button {
     color: #888;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    margin-bottom: 16px;
+    margin-bottom: 20px;
 }
 
 .card-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 16px;
+    margin-bottom: 20px;
 }
 
 .card-header .card-label {
@@ -524,7 +524,7 @@ div#controls > button {
 /* Character grid */
 .character-grid {
     display: flex;
-    gap: 12px;
+    gap: 16px;
     flex-wrap: wrap;
 }
 
@@ -532,13 +532,13 @@ div#controls > button {
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 12px;
+    padding: 16px;
     background-color: #1a1a1a;
     border: 2px solid transparent;
-    border-radius: 10px;
+    border-radius: 12px;
     cursor: pointer;
     transition: all 150ms ease;
-    width: 100px;
+    width: 108px;
 }
 
 .character-item:hover {
@@ -589,7 +589,7 @@ div#controls > button {
 /* Count buttons */
 .count-buttons {
     display: flex;
-    gap: 10px;
+    gap: 12px;
 }
 
 .count-btn {
@@ -648,7 +648,7 @@ div#controls > button {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 60px 20px;
+    padding: 80px 32px;
     background-color: #111;
     border: 1px dashed #222;
     border-radius: 12px;
@@ -656,8 +656,8 @@ div#controls > button {
 }
 
 .placeholder-icon {
-    font-size: 48px;
-    margin-bottom: 16px;
+    font-size: 56px;
+    margin-bottom: 20px;
     opacity: 0.5;
 }
 
@@ -683,8 +683,8 @@ div#controls > button {
 }
 
 .guest-grid .character-item {
-    width: 100px;
-    padding: 12px;
+    width: 108px;
+    padding: 16px;
 }
 
 .guest-grid .character-preview {
