@@ -17,6 +17,7 @@ import {
     Color
 } from 'three';
 import { camera } from '../scripts/SimplifiedScene.js';
+import * as SceneConfig from '../scripts/SceneConfig.js';
 
 export const campfire = new Group();
 let fireLight;
@@ -132,10 +133,10 @@ function createSittingLogs() {
     // Create log geometry - slightly larger than campfire logs
     const logGeometry = new CylinderGeometry(SITTING_LOG_RADIUS, SITTING_LOG_RADIUS, SITTING_LOG_LENGTH, 8);
 
-    // Check sprite count from URL parameter (supports 2/3/4)
-    const urlParams = new URLSearchParams(window.location.search);
-    const spriteParam = urlParams.get('sprites');
-    const spriteCount = spriteParam ? Math.max(2, Math.min(4, parseInt(spriteParam))) : 2;
+    // Get sprite count from SceneConfig
+    const selectedChars = SceneConfig.getSelectedCharacters();
+    const spriteCount = selectedChars.length;
+    console.log("Campfire: Creating sitting logs for", spriteCount, "characters:", selectedChars);
 
     // Base logs (front left/right) stay fixed for all counts
     const logPositions = [
@@ -232,7 +233,15 @@ function createFireLight() {
 
 export function Start() {
     console.log("Campfire: Starting initialization");
-    
+
+    // Clear any existing children from previous runs
+    while (campfire.children.length > 0) {
+        const child = campfire.children[0];
+        if (child.geometry) child.geometry.dispose();
+        if (child.material) child.material.dispose();
+        campfire.remove(child);
+    }
+
     logs = createLogs();
     logs.position.z = 1.5;  // Move burning logs forward (same as fire particles)
     campfire.add(logs);
