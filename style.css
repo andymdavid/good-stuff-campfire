@@ -480,3 +480,101 @@ div#controls > button {
     font-size: 12px;
     color: #555;
 }
+
+/* Count selector */
+.count-section {
+    margin-bottom: 32px;
+}
+
+.count-buttons {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+}
+
+.count-btn {
+    width: 56px;
+    height: 56px;
+    font-size: 20px;
+    font-weight: 600;
+    color: #888;
+    background-color: #1a1a1a;
+    border: 2px solid #333;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 200ms ease;
+}
+
+.count-btn:hover {
+    background-color: #222;
+    border-color: #444;
+    color: #fff;
+}
+
+.count-btn.selected {
+    background-color: #fff;
+    border-color: #fff;
+    color: #000;
+}
+
+/* Hosts section */
+.hosts-section {
+    margin-bottom: 24px;
+}
+
+.hosts-grid {
+    opacity: 0.7;
+}
+
+.host-card {
+    cursor: default;
+    border-color: #333;
+}
+
+.host-card:hover {
+    background-color: #1a1a1a;
+}
+
+/* Guest drawer */
+.guest-drawer {
+    margin-bottom: 32px;
+    padding: 20px;
+    background-color: #151515;
+    border-radius: 12px;
+    transition: all 300ms ease;
+}
+
+.guest-drawer.hidden {
+    display: none;
+}
+
+.guest-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.guest-header .section-label {
+    margin-bottom: 0;
+}
+
+.guest-hint {
+    font-size: 12px;
+    color: #666;
+}
+
+.guest-grid .character-item {
+    width: 100px;
+    padding: 12px;
+}
+
+.guest-grid .character-preview {
+    width: 48px;
+    height: 96px;
+    margin-bottom: 8px;
+}
+
+.guest-grid .character-name {
+    font-size: 12px;
+}
