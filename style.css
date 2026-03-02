@@ -349,3 +349,134 @@ div#controls > button {
     top: auto;
     right: auto;
 }
+
+/* Scene Panel - Home Screen */
+.scene-panel {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    background-color: #0d0d0d;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 1;
+    transition: opacity 300ms ease-out;
+}
+
+.scene-panel.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.panel-content {
+    max-width: 480px;
+    width: 90%;
+    padding: 32px;
+    text-align: center;
+}
+
+.panel-title {
+    font-size: 28px;
+    font-weight: 600;
+    color: #fff;
+    margin-bottom: 40px;
+    letter-spacing: -0.5px;
+}
+
+.section-label {
+    font-size: 14px;
+    font-weight: 500;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 16px;
+}
+
+.character-section {
+    margin-bottom: 40px;
+}
+
+.character-grid {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.character-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 16px;
+    background-color: #1a1a1a;
+    border: 2px solid transparent;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 200ms ease;
+    width: 120px;
+}
+
+.character-item:hover {
+    background-color: #222;
+}
+
+.character-item.selected {
+    border-color: #fff;
+    background-color: #252525;
+}
+
+.character-item input[type="checkbox"] {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.character-preview {
+    width: 64px;
+    height: 128px;
+    background-size: 400% 200%;
+    background-position: 0 0;
+    margin-bottom: 12px;
+    image-rendering: pixelated;
+}
+
+.character-name {
+    font-size: 14px;
+    font-weight: 500;
+    color: #fff;
+}
+
+.launch-button {
+    width: 100%;
+    max-width: 280px;
+    padding: 16px 32px;
+    font-size: 16px;
+    font-weight: 600;
+    color: #000;
+    background-color: #fff;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 200ms ease;
+}
+
+.launch-button:hover:not(:disabled) {
+    background-color: #e0e0e0;
+    transform: translateY(-1px);
+}
+
+.launch-button:active:not(:disabled) {
+    transform: translateY(0);
+}
+
+.launch-button:disabled {
+    background-color: #333;
+    color: #666;
+    cursor: not-allowed;
+}
+
+.panel-hint {
+    margin-top: 24px;
+    font-size: 12px;
+    color: #555;
+}
