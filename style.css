@@ -472,7 +472,7 @@ div#controls > button {
     margin-top: 40px;
     padding-top: 32px;
     border-top: 1px solid #1a1a1a;
-    text-align: center;
+    text-align: left;
 }
 
 .footer-hint {
