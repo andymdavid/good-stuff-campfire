@@ -350,15 +350,13 @@ div#controls > button {
     right: auto;
 }
 
-/* Scene Panel - Home Screen */
+/* Scene Panel - Dashboard Layout */
 .scene-panel {
     position: fixed;
     inset: 0;
     z-index: 1000;
-    background-color: #0d0d0d;
+    background-color: #0a0a0a;
     display: flex;
-    align-items: center;
-    justify-content: center;
     opacity: 1;
     transition: opacity 300ms ease-out;
 }
@@ -368,38 +366,165 @@ div#controls > button {
     pointer-events: none;
 }
 
-.panel-content {
-    max-width: 480px;
-    width: 90%;
-    padding: 32px;
-    text-align: center;
+/* Sidebar */
+.panel-sidebar {
+    width: 220px;
+    background-color: #111;
+    border-right: 1px solid #222;
+    display: flex;
+    flex-direction: column;
+    padding: 24px 0;
 }
 
-.panel-title {
-    font-size: 28px;
-    font-weight: 600;
+.panel-logo {
+    font-size: 18px;
+    font-weight: 700;
     color: #fff;
-    margin-bottom: 40px;
+    padding: 0 24px;
+    margin-bottom: 32px;
     letter-spacing: -0.5px;
 }
 
-.section-label {
+.panel-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 0 12px;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: transparent;
+    border: none;
+    border-radius: 8px;
+    color: #888;
     font-size: 14px;
     font-weight: 500;
+    cursor: pointer;
+    transition: all 150ms ease;
+    text-align: left;
+}
+
+.nav-item:hover {
+    background-color: #1a1a1a;
+    color: #ccc;
+}
+
+.nav-item.active {
+    background-color: #1a1a1a;
+    color: #fff;
+}
+
+.nav-icon {
+    font-size: 16px;
+}
+
+.nav-label {
+    flex: 1;
+}
+
+/* Main content area */
+.panel-main {
+    flex: 1;
+    overflow-y: auto;
+    background-color: #0a0a0a;
+}
+
+.tab-content {
+    display: none;
+    height: 100%;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+.tab-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 48px 32px;
+}
+
+.tab-header {
+    margin-bottom: 32px;
+}
+
+.tab-title {
+    font-size: 28px;
+    font-weight: 600;
+    color: #fff;
+    margin-bottom: 8px;
+    letter-spacing: -0.5px;
+}
+
+.tab-subtitle {
+    font-size: 14px;
+    color: #666;
+}
+
+.tab-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.tab-footer {
+    margin-top: 32px;
+    padding-top: 24px;
+    border-top: 1px solid #1a1a1a;
+    text-align: center;
+}
+
+.footer-hint {
+    margin-top: 12px;
+    font-size: 12px;
+    color: #444;
+}
+
+/* Panel cards */
+.panel-card {
+    background-color: #111;
+    border: 1px solid #1a1a1a;
+    border-radius: 12px;
+    padding: 20px;
+}
+
+.card-label {
+    font-size: 13px;
+    font-weight: 600;
     color: #888;
     text-transform: uppercase;
-    letter-spacing: 1px;
+    letter-spacing: 0.5px;
     margin-bottom: 16px;
 }
 
-.character-section {
-    margin-bottom: 40px;
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
 }
 
+.card-header .card-label {
+    margin-bottom: 0;
+}
+
+.card-hint {
+    font-size: 12px;
+    color: #555;
+}
+
+/* Character grid */
 .character-grid {
     display: flex;
-    gap: 16px;
-    justify-content: center;
+    gap: 12px;
     flex-wrap: wrap;
 }
 
@@ -407,17 +532,18 @@ div#controls > button {
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 16px;
+    padding: 12px;
     background-color: #1a1a1a;
     border: 2px solid transparent;
-    border-radius: 12px;
+    border-radius: 10px;
     cursor: pointer;
-    transition: all 200ms ease;
-    width: 120px;
+    transition: all 150ms ease;
+    width: 100px;
 }
 
 .character-item:hover {
     background-color: #222;
+    border-color: #333;
 }
 
 .character-item.selected {
@@ -425,89 +551,63 @@ div#controls > button {
     background-color: #252525;
 }
 
-.character-item input[type="checkbox"] {
-    position: absolute;
-    opacity: 0;
-    pointer-events: none;
-}
-
 .character-preview {
-    width: 64px;
-    height: 128px;
+    width: 48px;
+    height: 96px;
     background-size: 400% 200%;
     background-position: 0 0;
-    margin-bottom: 12px;
+    margin-bottom: 8px;
     image-rendering: pixelated;
 }
 
 .character-name {
-    font-size: 14px;
+    font-size: 12px;
     font-weight: 500;
     color: #fff;
 }
 
-.launch-button {
-    width: 100%;
-    max-width: 280px;
-    padding: 16px 32px;
-    font-size: 16px;
-    font-weight: 600;
-    color: #000;
-    background-color: #fff;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: all 200ms ease;
+/* Host cards */
+.hosts-grid {
+    opacity: 0.6;
 }
 
-.launch-button:hover:not(:disabled) {
-    background-color: #e0e0e0;
-    transform: translateY(-1px);
+.host-card {
+    cursor: default;
+    border-color: #222;
 }
 
-.launch-button:active:not(:disabled) {
-    transform: translateY(0);
+.host-card:hover {
+    background-color: #1a1a1a;
+    border-color: #222;
 }
 
-.launch-button:disabled {
-    background-color: #333;
-    color: #666;
-    cursor: not-allowed;
+/* Guest drawer */
+.guest-drawer.hidden {
+    display: none;
 }
 
-.panel-hint {
-    margin-top: 24px;
-    font-size: 12px;
-    color: #555;
-}
-
-/* Count selector */
-.count-section {
-    margin-bottom: 32px;
-}
-
+/* Count buttons */
 .count-buttons {
     display: flex;
-    gap: 12px;
-    justify-content: center;
+    gap: 10px;
 }
 
 .count-btn {
-    width: 56px;
-    height: 56px;
-    font-size: 20px;
+    width: 52px;
+    height: 52px;
+    font-size: 18px;
     font-weight: 600;
-    color: #888;
+    color: #666;
     background-color: #1a1a1a;
-    border: 2px solid #333;
-    border-radius: 12px;
+    border: 2px solid #222;
+    border-radius: 10px;
     cursor: pointer;
-    transition: all 200ms ease;
+    transition: all 150ms ease;
 }
 
 .count-btn:hover {
     background-color: #222;
-    border-color: #444;
+    border-color: #333;
     color: #fff;
 }
 
@@ -517,35 +617,53 @@ div#controls > button {
     color: #000;
 }
 
-/* Hosts section */
-.hosts-section {
-    margin-bottom: 24px;
+/* Launch button */
+.launch-button {
+    width: 100%;
+    max-width: 280px;
+    padding: 14px 28px;
+    font-size: 15px;
+    font-weight: 600;
+    color: #000;
+    background-color: #fff;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 150ms ease;
 }
 
-.hosts-grid {
-    opacity: 0.7;
+.launch-button:hover:not(:disabled) {
+    background-color: #e8e8e8;
 }
 
-.host-card {
-    cursor: default;
-    border-color: #333;
+.launch-button:disabled {
+    background-color: #222;
+    color: #555;
+    cursor: not-allowed;
 }
 
-.host-card:hover {
-    background-color: #1a1a1a;
-}
-
-/* Guest drawer */
-.guest-drawer {
-    margin-bottom: 32px;
-    padding: 20px;
-    background-color: #151515;
+/* Placeholder for coming soon */
+.placeholder-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+    background-color: #111;
+    border: 1px dashed #222;
     border-radius: 12px;
-    transition: all 300ms ease;
+    text-align: center;
 }
 
-.guest-drawer.hidden {
-    display: none;
+.placeholder-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+    opacity: 0.5;
+}
+
+.placeholder-text {
+    font-size: 14px;
+    color: #444;
 }
 
 .guest-header {
