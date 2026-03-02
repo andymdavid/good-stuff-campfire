@@ -9,7 +9,9 @@ let onLaunchCallback = null;
 const CHARACTERS = {
     pete: { name: 'Pete', thumbnail: 'images/PeteSprite.png' },
     andy: { name: 'Andy', thumbnail: 'images/AndySprite.png' },
-    joel: { name: 'Joel', thumbnail: 'images/JoelSprite.png' }
+    joel: { name: 'Joel', thumbnail: 'images/JoelSprite.png' },
+    gabe: { name: 'Gabe', thumbnail: 'images/Gabe-Sprite.png' },
+    bill: { name: 'Bill', thumbnail: 'images/Bill-Sprite.png' }
 };
 
 export function Start(onLaunch) {
