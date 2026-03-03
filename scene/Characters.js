@@ -28,7 +28,7 @@ const ALL_CHARACTERS = {
         framesVertical: 2,
         totalFrames: 8,
         scale: 0.63,
-        facingRight: false,
+        facingRight: true,
         startFrame: 0
     },
     andy: {
@@ -37,7 +37,7 @@ const ALL_CHARACTERS = {
         framesVertical: 2,
         totalFrames: 8,
         scale: 0.63,
-        facingRight: true,
+        facingRight: false,
         startFrame: 4
     },
     joel: {
