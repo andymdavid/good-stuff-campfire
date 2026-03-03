@@ -566,6 +566,13 @@ function saveCustomSprites(sprites) {
 }
 
 function loadCustomSpritesToGuests() {
+    // Remove hidden built-in guests
+    const hidden = getHiddenGuests();
+    hidden.forEach(id => {
+        delete GUESTS[id];
+    });
+
+    // Add custom sprites
     const customSprites = getCustomSprites();
     Object.entries(customSprites).forEach(([id, sprite]) => {
         GUESTS[id] = {
@@ -624,9 +631,8 @@ function createCharacterCard(id, char, isGuest) {
         };
     }
 
-    // Add delete button for custom guests (not built-in)
-    const isCustomGuest = isGuest && !BUILT_IN_GUESTS.includes(id);
-    if (isCustomGuest) {
+    // Add delete button for all guests
+    if (isGuest) {
         const deleteBtn = document.createElement('button');
         deleteBtn.className = 'delete-guest-btn';
         deleteBtn.textContent = '×';
@@ -657,10 +663,20 @@ function deleteGuest(guestId) {
     // Remove from GUESTS
     delete GUESTS[guestId];
 
-    // Remove from localStorage
-    const customSprites = getCustomSprites();
-    delete customSprites[guestId];
-    saveCustomSprites(customSprites);
+    // Handle storage based on guest type
+    if (BUILT_IN_GUESTS.includes(guestId)) {
+        // Hide built-in guest
+        const hidden = getHiddenGuests();
+        if (!hidden.includes(guestId)) {
+            hidden.push(guestId);
+            saveHiddenGuests(hidden);
+        }
+    } else {
+        // Delete custom guest from localStorage
+        const customSprites = getCustomSprites();
+        delete customSprites[guestId];
+        saveCustomSprites(customSprites);
+    }
 
     // Remove from selected guests if selected
     const index = selectedGuests.indexOf(guestId);
@@ -673,7 +689,24 @@ function deleteGuest(guestId) {
     updateLaunchButton();
     saveSelection();
 
-    console.log(`ScenePanel: Deleted custom guest "${guestId}"`);
+    console.log(`ScenePanel: Removed guest "${guestId}"`);
+}
+
+function getHiddenGuests() {
+    try {
+        const stored = localStorage.getItem('campfire-hidden-guests');
+        return stored ? JSON.parse(stored) : [];
+    } catch (e) {
+        return [];
+    }
+}
+
+function saveHiddenGuests(hidden) {
+    try {
+        localStorage.setItem('campfire-hidden-guests', JSON.stringify(hidden));
+    } catch (e) {
+        console.error('Failed to save hidden guests:', e);
+    }
 }
 
 function selectCount(count) {
