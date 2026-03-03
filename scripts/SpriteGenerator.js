@@ -248,59 +248,120 @@ export async function generateSprite(apiKey, characterName, description, referen
         }
 
         const data = await response.json();
-        console.log('SpriteGenerator: API response:', JSON.stringify(data, null, 2));
+        console.log('SpriteGenerator: Full API response:', JSON.stringify(data, null, 2));
 
-        // Parse response - Gemini returns image in message.images array
-        if (data.choices && data.choices[0]?.message) {
-            const message = data.choices[0].message;
+        // Helper to find image data URL in any object structure
+        function findImageUrl(obj, depth = 0) {
+            if (depth > 10 || !obj) return null;
 
-            // Check for images array (OpenRouter Gemini format)
-            if (message.images && Array.isArray(message.images) && message.images.length > 0) {
-                const firstImage = message.images[0];
-                if (firstImage.image_url?.url) {
-                    return { success: true, data: firstImage.image_url.url };
+            // Direct data URL string
+            if (typeof obj === 'string' && obj.startsWith('data:image')) {
+                return obj;
+            }
+
+            // Check common URL properties
+            if (obj.url && typeof obj.url === 'string' && obj.url.startsWith('data:image')) {
+                return obj.url;
+            }
+            if (obj.image_url?.url) {
+                return obj.image_url.url;
+            }
+            if (obj.b64_json) {
+                return `data:image/png;base64,${obj.b64_json}`;
+            }
+            if (obj.data && typeof obj.data === 'string' && !obj.data.startsWith('{')) {
+                return `data:image/png;base64,${obj.data}`;
+            }
+
+            // Recurse into arrays
+            if (Array.isArray(obj)) {
+                for (const item of obj) {
+                    const found = findImageUrl(item, depth + 1);
+                    if (found) return found;
                 }
             }
 
-            // Check content as array of parts
+            // Recurse into objects
+            if (typeof obj === 'object') {
+                for (const key of Object.keys(obj)) {
+                    const found = findImageUrl(obj[key], depth + 1);
+                    if (found) return found;
+                }
+            }
+
+            return null;
+        }
+
+        // Parse response - try to find image anywhere in the response
+        if (data.choices && data.choices[0]?.message) {
+            const message = data.choices[0].message;
+            console.log('SpriteGenerator: Message keys:', Object.keys(message));
+
+            // Check for images array (OpenRouter Gemini format)
+            if (message.images && Array.isArray(message.images) && message.images.length > 0) {
+                console.log('SpriteGenerator: Found images array with', message.images.length, 'images');
+                const imageUrl = findImageUrl(message.images[0]);
+                if (imageUrl) {
+                    return { success: true, data: imageUrl };
+                }
+            }
+
+            // Check content array
             if (Array.isArray(message.content)) {
+                console.log('SpriteGenerator: Content is array with', message.content.length, 'parts');
                 for (const part of message.content) {
-                    if (part.type === 'image_url' && part.image_url?.url) {
-                        return { success: true, data: part.image_url.url };
-                    }
-                    if (part.type === 'image' && part.image?.url) {
-                        return { success: true, data: part.image.url };
-                    }
-                    if (part.type === 'image' && part.image?.data) {
-                        return {
-                            success: true,
-                            data: `data:image/png;base64,${part.image.data}`
-                        };
+                    console.log('SpriteGenerator: Part type:', part.type);
+                    const imageUrl = findImageUrl(part);
+                    if (imageUrl) {
+                        return { success: true, data: imageUrl };
                     }
                 }
             }
 
             // Check if content itself is a data URL
-            if (typeof message.content === 'string' && message.content.startsWith('data:image')) {
-                return { success: true, data: message.content };
+            if (typeof message.content === 'string') {
+                console.log('SpriteGenerator: Content is string, length:', message.content.length);
+                if (message.content.startsWith('data:image')) {
+                    return { success: true, data: message.content };
+                }
+                // Log first 200 chars of text response
+                console.log('SpriteGenerator: Text response:', message.content.substring(0, 200));
+            }
+
+            // Try recursive search on entire message
+            const foundUrl = findImageUrl(message);
+            if (foundUrl) {
+                console.log('SpriteGenerator: Found image via recursive search');
+                return { success: true, data: foundUrl };
             }
         }
 
         // Fallback: Check for OpenAI-style image response
         if (data.data && data.data[0]) {
-            if (data.data[0].b64_json) {
-                return {
-                    success: true,
-                    data: `data:image/png;base64,${data.data[0].b64_json}`
-                };
-            }
-            if (data.data[0].url) {
-                return { success: true, data: data.data[0].url };
+            const imageUrl = findImageUrl(data.data[0]);
+            if (imageUrl) {
+                return { success: true, data: imageUrl };
             }
         }
 
-        console.log('SpriteGenerator: Could not find image in response');
-        return { success: false, error: 'No image in response. The model may not have generated an image.' };
+        // Try recursive search on entire response as last resort
+        const foundUrl = findImageUrl(data);
+        if (foundUrl) {
+            console.log('SpriteGenerator: Found image in response via deep search');
+            return { success: true, data: foundUrl };
+        }
+
+        // Extract any text response for error message
+        const textContent = data.choices?.[0]?.message?.content;
+        const errorDetail = typeof textContent === 'string' ? textContent.substring(0, 100) : '';
+        console.log('SpriteGenerator: No image found. Response text:', errorDetail);
+
+        return {
+            success: false,
+            error: errorDetail
+                ? `Model returned text instead of image: "${errorDetail}..."`
+                : 'No image in response. The model may not have generated an image.'
+        };
 
     } catch (error) {
         console.error('Sprite generation error:', error);
