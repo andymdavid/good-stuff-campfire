@@ -239,6 +239,9 @@ let activeCharacters = [];
 export function Start() {
     console.log("Characters: Starting initialization");
 
+    // Reload custom characters from localStorage (in case new ones were added)
+    loadCustomCharacters();
+
     // Clear any existing characters from previous runs
     while (charactersGroup.children.length > 0) {
         const child = charactersGroup.children[0];
@@ -269,6 +272,8 @@ export function Start() {
             activeCharacters.push(character);
             charactersGroup.add(character.mesh);
             console.log(`Created character: ${characterName} at position:`, position);
+        } else {
+            console.warn(`Characters: Could not find config for "${characterName}". Available:`, Object.keys(ALL_CHARACTERS));
         }
     }
 
