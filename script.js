@@ -1,5 +1,5 @@
 import * as TIME from "./scripts/Time.js";
-import * as SCENE from "./scripts/SimplifiedScene.js";
+import * as SCENE from "./scripts/SimplifiedScene.js?v=3";
 import * as SETTINGS from "./shaders/Settings.js";
 import * as ScenePanel from "./scripts/ScenePanel.js?v=3";
 

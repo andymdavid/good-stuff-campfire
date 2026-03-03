@@ -3,7 +3,7 @@ import * as Skybox from "../scene/Skybox.js";
 import * as Ocean from "../scene/Ocean.js";
 import * as Beach from "../scene/Beach.js";
 import * as Campfire from "../scene/Campfire.js";
-import * as Characters from "../scene/Characters.js";
+import * as Characters from "../scene/Characters.js?v=3";
 import * as PalmTree from "../scene/PalmTree.js";
 
 export let body = null;

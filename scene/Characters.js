@@ -76,18 +76,17 @@ function loadCustomCharacters() {
         if (stored) {
             const customSprites = JSON.parse(stored);
             Object.entries(customSprites).forEach(([id, sprite]) => {
-                if (!ALL_CHARACTERS[id]) {
-                    ALL_CHARACTERS[id] = {
-                        textureFile: sprite.dataUrl,
-                        framesHorizontal: 4,
-                        framesVertical: 2,
-                        totalFrames: 8,
-                        scale: 0.52,
-                        facingRight: false,
-                        startFrame: 0
-                    };
-                    console.log(`Characters: Loaded custom character "${sprite.name}" (${id})`);
-                }
+                // Always update/overwrite to pick up regenerated sprites
+                ALL_CHARACTERS[id] = {
+                    textureFile: sprite.dataUrl,
+                    framesHorizontal: 4,
+                    framesVertical: 2,
+                    totalFrames: 8,
+                    scale: 0.52,
+                    facingRight: false,
+                    startFrame: 0
+                };
+                console.log(`Characters: Loaded custom character "${sprite.name}" (${id})`);
             });
         }
     } catch (e) {
