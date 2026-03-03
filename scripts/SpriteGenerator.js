@@ -64,8 +64,12 @@ async function loadReferenceImages() {
 /**
  * Build the prompt for generating a sprite sheet
  */
-export function buildSpritePrompt(characterName, characterFeatures) {
-    return `Create a full-body pixel-art sprite sheet of a seated character based on the attached reference images for art style. The character must be visible from head to feet in every frame, with no cropping, no missing limbs, and no partial body framing.
+export function buildSpritePrompt(characterName, characterFeatures, hasReferencePhoto = false) {
+    const referencePhotoInstructions = hasReferencePhoto
+        ? `\n\nIMPORTANT: A reference photo of the person has been provided. The character's face, features, and overall appearance should closely match this person while rendered in the pixel art style shown in the style reference images.`
+        : '';
+
+    return `Create a full-body pixel-art sprite sheet of a seated character based on the attached reference images for art style. The character must be visible from head to feet in every frame, with no cropping, no missing limbs, and no partial body framing.${referencePhotoInstructions}
 
 Match the EXACT pixel art style of the reference images:
 - Same pixel art resolution and detail level
@@ -163,9 +167,10 @@ Generate ONLY the sprite sheet image, no text or explanations.`;
  * @param {string} apiKey - OpenRouter API key
  * @param {string} characterName - Name of the character
  * @param {string} description - Description of the character's appearance
+ * @param {string|null} referencePhotoDataUrl - Optional reference photo of the person
  * @returns {Promise<{success: boolean, data?: string, error?: string}>}
  */
-export async function generateSprite(apiKey, characterName, description) {
+export async function generateSprite(apiKey, characterName, description, referencePhotoDataUrl = null) {
     if (!apiKey) {
         return { success: false, error: 'API key is required' };
     }
@@ -174,24 +179,32 @@ export async function generateSprite(apiKey, characterName, description) {
         return { success: false, error: 'Character name and description are required' };
     }
 
-    // Load reference images
-    const referenceImages = await loadReferenceImages();
+    // Load style reference images (Pete and Andy sprites)
+    const styleReferenceImages = await loadReferenceImages();
 
-    // Build message content with reference images first, then prompt
+    // Build message content with images first, then prompt
     const content = [];
 
-    // Add reference images
-    for (const imageDataUrl of referenceImages) {
+    // Add style reference images first
+    for (const imageDataUrl of styleReferenceImages) {
         content.push({
             type: 'image_url',
             image_url: { url: imageDataUrl }
         });
     }
 
+    // Add user's reference photo if provided
+    if (referencePhotoDataUrl) {
+        content.push({
+            type: 'image_url',
+            image_url: { url: referencePhotoDataUrl }
+        });
+    }
+
     // Add the text prompt
     content.push({
         type: 'text',
-        text: buildSpritePrompt(characterName, description)
+        text: buildSpritePrompt(characterName, description, !!referencePhotoDataUrl)
     });
 
     try {

@@ -284,6 +284,66 @@ function createSpriteCreatorTab() {
     const descGroup = document.createElement('div');
     descGroup.className = 'form-group';
 
+    // Reference photo upload
+    const photoGroup = document.createElement('div');
+    photoGroup.className = 'form-group';
+
+    const photoLabel = document.createElement('label');
+    photoLabel.className = 'form-label';
+    photoLabel.textContent = 'Reference Photo (Optional)';
+    photoGroup.appendChild(photoLabel);
+
+    const photoWrapper = document.createElement('div');
+    photoWrapper.className = 'photo-upload-wrapper';
+
+    const photoInput = document.createElement('input');
+    photoInput.type = 'file';
+    photoInput.id = 'reference-photo-input';
+    photoInput.accept = 'image/*';
+    photoInput.style.display = 'none';
+
+    const photoButton = document.createElement('button');
+    photoButton.className = 'photo-upload-btn';
+    photoButton.textContent = 'Choose Photo';
+    photoButton.onclick = (e) => {
+        e.preventDefault();
+        photoInput.click();
+    };
+
+    const photoPreview = document.createElement('div');
+    photoPreview.id = 'photo-preview';
+    photoPreview.className = 'photo-preview';
+
+    const photoHint = document.createElement('span');
+    photoHint.id = 'photo-hint';
+    photoHint.className = 'photo-hint';
+    photoHint.textContent = 'No photo selected';
+
+    photoInput.onchange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            photoHint.textContent = file.name;
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                photoPreview.style.backgroundImage = `url(${event.target.result})`;
+                photoPreview.classList.add('has-image');
+            };
+            reader.readAsDataURL(file);
+        } else {
+            photoHint.textContent = 'No photo selected';
+            photoPreview.style.backgroundImage = '';
+            photoPreview.classList.remove('has-image');
+        }
+    };
+
+    photoWrapper.appendChild(photoInput);
+    photoWrapper.appendChild(photoButton);
+    photoWrapper.appendChild(photoPreview);
+    photoWrapper.appendChild(photoHint);
+    photoGroup.appendChild(photoWrapper);
+    form.appendChild(photoGroup);
+
+    // Character features
     const descLabel = document.createElement('label');
     descLabel.className = 'form-label';
     descLabel.textContent = 'Character Visual Features';
@@ -443,10 +503,17 @@ async function handleGenerateSprite() {
     const apiKey = SceneConfig.getApiKey('openrouter');
     const characterName = document.getElementById('character-name-input').value.trim();
     const description = document.getElementById('character-desc-input').value.trim();
+    const photoInput = document.getElementById('reference-photo-input');
     const generateBtn = document.getElementById('generate-sprite-btn');
     const messageArea = document.getElementById('sprite-message');
     const previewContainer = document.getElementById('sprite-preview-container');
     const saveBtn = document.getElementById('save-sprite-btn');
+
+    // Get reference photo if uploaded
+    let referencePhotoDataUrl = null;
+    if (photoInput.files && photoInput.files[0]) {
+        referencePhotoDataUrl = await readFileAsDataUrl(photoInput.files[0]);
+    }
 
     // Validate inputs
     if (!apiKey) {
@@ -471,7 +538,7 @@ async function handleGenerateSprite() {
     hideMessage(messageArea);
 
     try {
-        const result = await SpriteGenerator.generateSprite(apiKey, characterName, description);
+        const result = await SpriteGenerator.generateSprite(apiKey, characterName, description, referencePhotoDataUrl);
 
         if (result.success) {
             spritePreviewUrl = result.data;
@@ -543,6 +610,10 @@ function handleSaveSprite() {
 • Top:
 • Bottom:
 • Extras: `;
+    document.getElementById('reference-photo-input').value = '';
+    document.getElementById('photo-preview').style.backgroundImage = '';
+    document.getElementById('photo-preview').classList.remove('has-image');
+    document.getElementById('photo-hint').textContent = 'No photo selected';
     document.getElementById('sprite-preview-container').innerHTML = '<p class="sprite-preview-placeholder">Generated sprite will appear here</p>';
     document.getElementById('save-sprite-btn').style.display = 'none';
     spritePreviewUrl = null;
@@ -592,6 +663,15 @@ function refreshGuestGrid() {
         guestGrid.appendChild(guestCard);
     });
     updateGuestSelection();
+}
+
+function readFileAsDataUrl(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => resolve(e.target.result);
+        reader.onerror = (e) => reject(e);
+        reader.readAsDataURL(file);
+    });
 }
 
 function showMessage(element, message, type) {
