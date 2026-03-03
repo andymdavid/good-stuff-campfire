@@ -286,13 +286,19 @@ function createSpriteCreatorTab() {
 
     const descLabel = document.createElement('label');
     descLabel.className = 'form-label';
-    descLabel.textContent = 'Character Description';
+    descLabel.textContent = 'Character Visual Features';
     descGroup.appendChild(descLabel);
 
     const descInput = document.createElement('textarea');
     descInput.id = 'character-desc-input';
     descInput.className = 'form-textarea';
-    descInput.placeholder = 'Describe the character appearance, e.g., "a young woman with curly red hair, wearing a green sweater and jeans"';
+    descInput.value = `• Gender:
+• Hair:
+• Face:
+• Skin tone:
+• Top:
+• Bottom:
+• Extras: `;
     descGroup.appendChild(descInput);
 
     form.appendChild(descGroup);
@@ -530,7 +536,13 @@ function handleSaveSprite() {
 
     // Clear form
     document.getElementById('character-name-input').value = '';
-    document.getElementById('character-desc-input').value = '';
+    document.getElementById('character-desc-input').value = `• Gender:
+• Hair:
+• Face:
+• Skin tone:
+• Top:
+• Bottom:
+• Extras: `;
     document.getElementById('sprite-preview-container').innerHTML = '<p class="sprite-preview-placeholder">Generated sprite will appear here</p>';
     document.getElementById('save-sprite-btn').style.display = 'none';
     spritePreviewUrl = null;

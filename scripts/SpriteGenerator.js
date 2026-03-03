@@ -64,26 +64,96 @@ async function loadReferenceImages() {
 /**
  * Build the prompt for generating a sprite sheet
  */
-export function buildSpritePrompt(characterName, description) {
-    return `Generate a new character sprite sheet that EXACTLY matches the pixel art style of the reference images I've provided.
+export function buildSpritePrompt(characterName, characterFeatures) {
+    return `Create a full-body pixel-art sprite sheet of a seated character based on the attached reference images for art style. The character must be visible from head to feet in every frame, with no cropping, no missing limbs, and no partial body framing.
 
-The reference images show the art style you must match:
+Match the EXACT pixel art style of the reference images:
 - Same pixel art resolution and detail level
 - Same proportions and character sizing
 - Same color palette warmth and saturation
 - Same shading technique and lighting style
 
-NEW CHARACTER TO CREATE:
-- Name: ${characterName}
-- Appearance: ${description}
-- Pose: Sitting, facing slightly to the side (like the references)
+Character Name: ${characterName}
 
-SPRITE SHEET REQUIREMENTS:
-- Layout: 4 columns × 2 rows grid (8 frames total)
-- Each frame shows subtle idle animation (slight breathing/movement)
-- Transparent background
-- Character must be consistent across all 8 frames
-- Match the exact pixel art style of the reference sprites
+Character Visual Features:
+${characterFeatures}
+
+---
+
+Sprite Sheet Requirements
+
+Format: 8 distinct frames arranged in a 4×2 grid.
+Each frame MUST be different — no duplicate or near-duplicate frames.
+
+Transparent background. No seat, props, or environment. Just the character.
+
+---
+
+Animation Logic
+
+Each frame must show a different pose, expression, or gesture, simulating a natural conversation.
+The character is seated the entire time.
+
+Frame-by-frame requirements:
+
+Frame 1 — Idle Pose
+• Sitting upright
+• Closed-lip friendly smile
+• Hands resting naturally on both knees
+
+Frame 2 — Subtle Movement
+• Slight lean to the left
+• Closed-lip smile
+• Hands still on knees
+
+Frame 3 — Subtle Movement
+• Slight lean to the right
+• Closed-lip smile
+• One foot tapping or shifting position slightly
+
+Frame 4 — Head Turn (Left)
+• Head turned slightly to the left
+• Small, closed-lip smile
+• Hands on knees
+
+Frame 5 — Head Turn (Right)
+• Head turned slightly to the right
+• Big toothy grin
+• Hands on knees
+
+Frame 6 — Talking Animation (Mouth Open)
+• Looking forward
+• Mouth open mid-speech
+• One hand lifted in a small conversational gesture
+
+Frame 7 — Talking Animation (Mouth Mid-Shape)
+• Looking forward
+• Mouth in a mid-speech "O" or "E" shape
+• A different hand gesture (e.g., hand slightly raised, palm angled)
+
+Frame 8 — Gesture Emphasis
+• Looking forward
+• Big friendly toothy grin
+• One arm extended slightly outward in an expressive conversation gesture
+
+---
+
+Styling Instructions
+• Classic pixel-art style, clean and readable at small resolution
+• Consistent palette across all frames
+• Clear silhouette and recognizable character
+• No repeated frames
+• Full-body visible including head, torso, legs, hands, and both feet
+• Must look like a natural looping conversational animation when cycled
+
+---
+
+Additional Generation Rules
+• Each frame must show a meaningful, obvious change in pose, facial expression, or gesture
+• Do NOT duplicate previous frames
+• Do NOT crop the character
+• Do NOT place the character on a chair or object
+• Ensure a friendly, warm appearance — no grumpy expressions
 
 Generate ONLY the sprite sheet image, no text or explanations.`;
 }
