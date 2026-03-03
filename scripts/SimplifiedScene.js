@@ -6,6 +6,7 @@ import * as Campfire from "../scene/Campfire.js";
 import * as Characters from "../scene/Characters.js?v=3";
 import * as PalmTree from "../scene/PalmTree.js";
 import * as FlagPole from "../scene/FlagPole.js";
+import * as TriplaneBanner from "../scene/TriplaneBanner.js";
 
 export let body = null;
 export const clock = new Clock();
@@ -14,7 +15,7 @@ let isInitialized = false;
 let wheelHandler = null;
 let resizeHandler = null;
 
-export const renderer = new WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+export const renderer = new WebGLRenderer({ antialias: true, preserveDrawingBuffer: true, stencil: true });
 export const scene = new Scene();
 export const camera = new PerspectiveCamera();
 
@@ -119,6 +120,7 @@ export function Start() {
 
         Beach.Start();
         scene.add(Beach.beach);
+        scene.add(Beach.beachDepthMask);
         console.log("Added Beach to scene");
 
         Campfire.Start();
@@ -136,6 +138,10 @@ export function Start() {
         FlagPole.Start();
         scene.add(FlagPole.flagPole);
         console.log("Added Flag Pole to scene");
+
+        TriplaneBanner.Start();
+        scene.add(TriplaneBanner.triplaneBanner);
+        console.log("Added Triplane Banner to scene");
     } catch (error) {
         console.error("Error during scene component initialization:", error);
     }
@@ -252,6 +258,7 @@ export function Update() {
         Characters.Update();
         PalmTree.Update();
         FlagPole.Update(deltaTime);
+        TriplaneBanner.Update(deltaTime);
         renderer.render(scene, camera);
     } catch (error) {
         console.error("Error during scene update:", error);

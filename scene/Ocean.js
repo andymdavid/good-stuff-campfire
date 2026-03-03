@@ -1,6 +1,7 @@
 import { BufferAttribute, BufferGeometry, Mesh } from "three";
 import * as oceanMaterials from "../materials/OceanMaterial.js";
 import { camera } from "../scripts/SimplifiedScene.js";
+import { BEACH_DEPTH } from "./Beach.js";
 
 export const surface = new Mesh();
 export const volume = new Mesh();
@@ -35,6 +36,9 @@ export function Start()
 
         surface.geometry = surfaceGeometry;
         surface.material = oceanMaterials.surface;
+        surface.material.depthWrite = false;
+        surface.material.depthTest = true;
+        surface.renderOrder = 0;
         console.log("Ocean: Surface created");
 
         const volumeVertices = new Float32Array
@@ -65,6 +69,9 @@ export function Start()
 
         volume.geometry = volumeGeometry;
         volume.material = oceanMaterials.volume;
+        volume.material.depthWrite = false;
+        volume.material.depthTest = true;
+        volume.renderOrder = 0;
 
         volume.parent = surface;
         surface.add(volume);
@@ -77,5 +84,7 @@ export function Start()
 
 export function Update()
 {   
-    surface.position.set(camera.position.x, 0, camera.position.z);
+    surface.position.set(camera.position.x, -0.4, camera.position.z);
+    const shoreZ = camera.position.z - BEACH_DEPTH * 0.25;
+    oceanMaterials.shoreZUniform.value = shoreZ;
 }

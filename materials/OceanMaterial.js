@@ -21,6 +21,9 @@ const spotLightSharpness = 10;
 export const spotLightDistance = 200;
 export const spotLightDistanceUniform = new Uniform(spotLightDistance);
 
+export const shoreZUniform = new Uniform(0);
+export const shoreFeatherUniform = new Uniform(6);
+
 const objectTexture = new TextureLoader().load("images/basicChecker.png");
 objectTexture.wrapS = RepeatWrapping;
 objectTexture.wrapT = RepeatWrapping;
@@ -45,13 +48,20 @@ export function Start()
         {
             _Time: timeUniform,
             _NormalMap1: normalMap1,
-            _NormalMap2: normalMap2
+            _NormalMap2: normalMap2,
+            _ShoreZ: shoreZUniform,
+            _ShoreFeather: shoreFeatherUniform
         };
         SetSkyboxUniforms(surface);
         console.log("OceanMaterial: Surface shader initialized");
         
         volume.vertexShader = OceanShaders.volumeVertex;
         volume.fragmentShader = OceanShaders.volumeFragment;
+        volume.uniforms = 
+        {
+            _ShoreZ: shoreZUniform,
+            _ShoreFeather: shoreFeatherUniform
+        };
         SetSkyboxUniforms(volume);
         console.log("OceanMaterial: Volume shader initialized");
         

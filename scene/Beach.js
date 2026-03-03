@@ -1,13 +1,14 @@
-import { Mesh, PlaneGeometry, MeshStandardMaterial, Vector2, DataTexture, RGBAFormat, FloatType, RepeatWrapping, Color } from "three";
+import { Mesh, PlaneGeometry, MeshStandardMaterial, MeshDepthMaterial, Vector2, DataTexture, RGBAFormat, FloatType, RepeatWrapping, Color } from "three";
 import { camera } from "../scripts/SimplifiedScene.js";
 import { dirToLight } from "../scene/Skybox.js";
 
 const BEACH_SIZE = 200; // Width of the beach
-const BEACH_DEPTH = 75; // Increased depth to give room for campfire scene
+export const BEACH_DEPTH = 75; // Increased depth to give room for campfire scene
 const BEACH_SEGMENTS_WIDTH = 100; // More segments for smoother curves
 const BEACH_SEGMENTS_DEPTH = 50;
 
 export const beach = new Mesh();
+export const beachDepthMask = new Mesh();
 
 function createSandTexture() {
     // Create a procedural sand texture
@@ -92,15 +93,28 @@ export function Start() {
         emissiveIntensity: 0.08, // Increased base glow
         envMapIntensity: 1.0 // Full environment reflection for daytime
     });
+    // Ensure sand wins depth ties against the ocean surface
+    material.polygonOffset = true;
+    material.polygonOffsetFactor = -2;
+    material.polygonOffsetUnits = -2;
     console.log("Beach: Material created", material);
     
     // Setup the beach mesh
     beach.geometry = geometry;
     beach.material = material;
     beach.rotation.x = -Math.PI / 2; // Lay flat
-    beach.position.y = 0; // At ocean level
+    beach.position.y = 0.1; // Lift sand further above ocean to avoid overlap
     beach.position.z = BEACH_DEPTH * 0.25; // Position beach closer to camera
     beach.receiveShadow = true; // Allow the beach to receive shadows
+    beach.renderOrder = 1;
+
+    // Depth-only mask so ocean cannot draw over beach
+    beachDepthMask.geometry = geometry;
+    beachDepthMask.material = new MeshDepthMaterial();
+    beachDepthMask.material.colorWrite = false;
+    beachDepthMask.rotation.x = beach.rotation.x;
+    beachDepthMask.position.copy(beach.position);
+    beachDepthMask.renderOrder = -1;
     
     console.log("Beach: Mesh configured", beach);
     console.log("Beach: Initialization complete");
@@ -110,9 +124,10 @@ export function Update() {
     // Keep beach centered on camera position but slightly forward
     beach.position.set(
         camera.position.x,
-        0,
+        0.1,
         camera.position.z + BEACH_DEPTH * 0.25
     );
+    beachDepthMask.position.copy(beach.position);
     
     // Update beach lighting based on sun direction
     const sunIntensity = Math.max(0.1, dirToLight.y); // Keep minimum light level

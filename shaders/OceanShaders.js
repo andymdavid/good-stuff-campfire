@@ -18,11 +18,17 @@ export const surfaceFragment =
 /*glsl*/`
     #include <ocean>
 
+    uniform float _ShoreZ;
+    uniform float _ShoreFeather;
+
     varying vec2 _worldPos;
     varying vec2 _uv;
 
     void main()
     {
+        float shoreMask = smoothstep(_ShoreZ, _ShoreZ - _ShoreFeather, _worldPos.y);
+        if (shoreMask <= 0.001) discard;
+
         vec3 viewVec = vec3(_worldPos.x, 0.0, _worldPos.y) - cameraPosition;
         float viewLen = length(viewVec);
         vec3 viewDir = viewVec / viewLen;
@@ -50,7 +56,8 @@ export const surfaceFragment =
             float fog = clamp(viewLen / FOG_DISTANCE + dither, 0.0, 1.0);
             surface = mix(surface, sampleFog(viewDir), fog);
 
-            gl_FragColor = vec4(surface, max(max(reflectivity, specular), fog));
+            float alpha = max(max(reflectivity, specular), fog) * shoreMask;
+            gl_FragColor = vec4(surface, alpha);
             return;
         }
 
@@ -70,11 +77,11 @@ export const surfaceFragment =
             vec3 rColor = exp((sampleY - MAX_VIEW_DEPTH_DENSITY) * ABSORPTION);
             rColor *= _Light;
 
-            gl_FragColor = vec4(mix(rColor, light, t), 1.0);
+            gl_FragColor = vec4(mix(rColor, light, t), shoreMask);
             return;
         }
 
-        gl_FragColor = vec4(light, t);
+        gl_FragColor = vec4(light, t * shoreMask);
     }
 `;
 
@@ -94,10 +101,16 @@ export const volumeFragment =
 /*glsl*/`
     #include <ocean>
 
+    uniform float _ShoreZ;
+    uniform float _ShoreFeather;
+
     varying vec3 _worldPos;
 
     void main()
     {
+        float shoreMask = smoothstep(_ShoreZ, _ShoreZ - _ShoreFeather, _worldPos.z);
+        if (shoreMask <= 0.001) discard;
+
         vec3 viewVec = _worldPos - cameraPosition;
         float viewLen = length(viewVec);
         vec3 viewDir = viewVec / viewLen;
@@ -115,7 +128,7 @@ export const volumeFragment =
         vec3 light = exp((sampleY - viewLen * DENSITY) * ABSORPTION);
         light *= _Light;
         
-        gl_FragColor = vec4(light, 1.0);
+        gl_FragColor = vec4(light, shoreMask);
     }
 `;
 
