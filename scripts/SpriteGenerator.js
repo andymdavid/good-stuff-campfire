@@ -1,7 +1,7 @@
 // SpriteGenerator.js - OpenRouter API integration for sprite generation
 
 const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions';
-const MODEL = 'google/gemini-2.5-flash-image-preview';
+const MODEL = 'google/gemini-3.1-flash-image-preview'; // Nano Banana 2
 
 // Reference sprite paths
 const REFERENCE_SPRITES = [
