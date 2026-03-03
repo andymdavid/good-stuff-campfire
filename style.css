@@ -695,3 +695,213 @@ div#controls > button {
 .guest-grid .character-name {
     font-size: 13px;
 }
+
+/* Sprite Creator Styles */
+.sprite-form {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.form-label {
+    font-size: 12px;
+    font-weight: 500;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+}
+
+.form-input {
+    width: 100%;
+    padding: 14px 16px;
+    font-size: 14px;
+    font-weight: 400;
+    color: #fff;
+    background-color: #1c1c1c;
+    border: 1px solid #2a2a2a;
+    border-radius: 8px;
+    outline: none;
+    transition: border-color 150ms ease;
+}
+
+.form-input:focus {
+    border-color: #444;
+}
+
+.form-input::placeholder {
+    color: #555;
+}
+
+.api-key-wrapper {
+    position: relative;
+    display: flex;
+    gap: 8px;
+}
+
+.api-key-wrapper .form-input {
+    flex: 1;
+    padding-right: 16px;
+}
+
+.api-key-toggle {
+    padding: 14px 16px;
+    font-size: 12px;
+    font-weight: 500;
+    color: #666;
+    background-color: #1c1c1c;
+    border: 1px solid #2a2a2a;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 150ms ease;
+    white-space: nowrap;
+}
+
+.api-key-toggle:hover {
+    background-color: #222;
+    color: #aaa;
+}
+
+.form-textarea {
+    width: 100%;
+    min-height: 100px;
+    padding: 14px 16px;
+    font-size: 14px;
+    font-weight: 400;
+    color: #fff;
+    background-color: #1c1c1c;
+    border: 1px solid #2a2a2a;
+    border-radius: 8px;
+    outline: none;
+    resize: vertical;
+    transition: border-color 150ms ease;
+    font-family: inherit;
+}
+
+.form-textarea:focus {
+    border-color: #444;
+}
+
+.form-textarea::placeholder {
+    color: #555;
+}
+
+.generate-button {
+    width: 100%;
+    padding: 16px 24px;
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: -0.2px;
+    color: #000;
+    background-color: #fff;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 150ms ease;
+}
+
+.generate-button:hover:not(:disabled) {
+    background-color: #e0e0e0;
+}
+
+.generate-button:disabled {
+    background-color: #1c1c1c;
+    color: #444;
+    cursor: not-allowed;
+}
+
+.generate-button.loading {
+    position: relative;
+    color: transparent;
+}
+
+.generate-button.loading::after {
+    content: '';
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    top: 50%;
+    left: 50%;
+    margin-left: -10px;
+    margin-top: -10px;
+    border: 2px solid #333;
+    border-top-color: #000;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.sprite-preview-container {
+    background-color: #141414;
+    border: 1px solid #252525;
+    border-radius: 12px;
+    padding: 24px;
+    min-height: 200px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.sprite-preview-placeholder {
+    font-size: 14px;
+    color: #444;
+}
+
+.sprite-preview-image {
+    max-width: 100%;
+    max-height: 300px;
+    image-rendering: pixelated;
+    border-radius: 4px;
+}
+
+.save-button {
+    width: 100%;
+    padding: 16px 24px;
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: -0.2px;
+    color: #000;
+    background-color: #fff;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 150ms ease;
+    margin-top: 16px;
+}
+
+.save-button:hover:not(:disabled) {
+    background-color: #e0e0e0;
+}
+
+.save-button:disabled {
+    background-color: #1c1c1c;
+    color: #444;
+    cursor: not-allowed;
+}
+
+.error-message {
+    padding: 14px 16px;
+    font-size: 13px;
+    color: #ff6b6b;
+    background-color: rgba(255, 107, 107, 0.1);
+    border: 1px solid rgba(255, 107, 107, 0.2);
+    border-radius: 8px;
+}
+
+.success-message {
+    padding: 14px 16px;
+    font-size: 13px;
+    color: #6bff6b;
+    background-color: rgba(107, 255, 107, 0.1);
+    border: 1px solid rgba(107, 255, 107, 0.2);
+    border-radius: 8px;
+}
