@@ -377,32 +377,89 @@ function createSpriteCreatorTab() {
     messageArea.style.display = 'none';
     form.appendChild(messageArea);
 
-    // Preview container
-    const previewContainer = document.createElement('div');
-    previewContainer.className = 'sprite-preview-container';
-    previewContainer.id = 'sprite-preview-container';
-
-    const previewPlaceholder = document.createElement('p');
-    previewPlaceholder.className = 'sprite-preview-placeholder';
-    previewPlaceholder.id = 'sprite-preview-placeholder';
-    previewPlaceholder.textContent = 'Generated sprite will appear here';
-    previewContainer.appendChild(previewPlaceholder);
-
-    form.appendChild(previewContainer);
-
-    // Save button (hidden until sprite is generated)
-    const saveBtn = document.createElement('button');
-    saveBtn.id = 'save-sprite-btn';
-    saveBtn.className = 'save-button';
-    saveBtn.textContent = 'Save & Add to Characters';
-    saveBtn.style.display = 'none';
-    saveBtn.onclick = handleSaveSprite;
-    form.appendChild(saveBtn);
-
     content.appendChild(form);
     container.appendChild(content);
 
+    // Create modal (appended to body later)
+    createSpriteModal();
+
     return container;
+}
+
+function createSpriteModal() {
+    // Check if modal already exists
+    if (document.getElementById('sprite-modal')) return;
+
+    const modal = document.createElement('div');
+    modal.id = 'sprite-modal';
+    modal.className = 'sprite-modal';
+
+    const content = document.createElement('div');
+    content.className = 'sprite-modal-content';
+
+    const image = document.createElement('img');
+    image.id = 'sprite-modal-image';
+    image.className = 'sprite-modal-image';
+    image.alt = 'Generated sprite';
+    content.appendChild(image);
+
+    const actions = document.createElement('div');
+    actions.className = 'sprite-modal-actions';
+
+    const editBtn = document.createElement('button');
+    editBtn.className = 'sprite-modal-btn edit';
+    editBtn.textContent = 'Edit';
+    editBtn.onclick = handleModalEdit;
+    actions.appendChild(editBtn);
+
+    const rejectBtn = document.createElement('button');
+    rejectBtn.className = 'sprite-modal-btn reject';
+    rejectBtn.textContent = 'Reject';
+    rejectBtn.onclick = handleModalReject;
+    actions.appendChild(rejectBtn);
+
+    const acceptBtn = document.createElement('button');
+    acceptBtn.className = 'sprite-modal-btn accept';
+    acceptBtn.textContent = 'Accept';
+    acceptBtn.onclick = handleModalAccept;
+    actions.appendChild(acceptBtn);
+
+    content.appendChild(actions);
+    modal.appendChild(content);
+    document.body.appendChild(modal);
+}
+
+function showSpriteModal(imageUrl) {
+    const modal = document.getElementById('sprite-modal');
+    const image = document.getElementById('sprite-modal-image');
+    if (modal && image) {
+        image.src = imageUrl;
+        modal.classList.add('visible');
+    }
+}
+
+function hideSpriteModal() {
+    const modal = document.getElementById('sprite-modal');
+    if (modal) {
+        modal.classList.remove('visible');
+    }
+}
+
+function handleModalEdit() {
+    // Just close modal - form still has the values
+    hideSpriteModal();
+}
+
+function handleModalReject() {
+    // Close modal and clear the preview URL
+    hideSpriteModal();
+    spritePreviewUrl = null;
+}
+
+function handleModalAccept() {
+    // Save the sprite and close modal
+    hideSpriteModal();
+    handleSaveSprite();
 }
 
 function createSettingsTab() {
@@ -506,8 +563,6 @@ async function handleGenerateSprite() {
     const photoInput = document.getElementById('reference-photo-input');
     const generateBtn = document.getElementById('generate-sprite-btn');
     const messageArea = document.getElementById('sprite-message');
-    const previewContainer = document.getElementById('sprite-preview-container');
-    const saveBtn = document.getElementById('save-sprite-btn');
 
     // Get reference photo if uploaded
     let referencePhotoDataUrl = null;
@@ -534,7 +589,6 @@ async function handleGenerateSprite() {
     generateBtn.disabled = true;
     generateBtn.classList.add('loading');
     generateBtn.textContent = '';
-    saveBtn.style.display = 'none';
     hideMessage(messageArea);
 
     try {
@@ -542,19 +596,8 @@ async function handleGenerateSprite() {
 
         if (result.success) {
             spritePreviewUrl = result.data;
-
-            // Show preview
-            previewContainer.innerHTML = '';
-            const previewImg = document.createElement('img');
-            previewImg.className = 'sprite-preview-image';
-            previewImg.src = spritePreviewUrl;
-            previewImg.alt = `Generated sprite for ${characterName}`;
-            previewContainer.appendChild(previewImg);
-
-            // Show save button
-            saveBtn.style.display = 'block';
-
-            showMessage(messageArea, 'Sprite generated successfully!', 'success');
+            // Show modal with generated sprite
+            showSpriteModal(spritePreviewUrl);
         } else {
             showMessage(messageArea, result.error || 'Failed to generate sprite', 'error');
         }
@@ -614,8 +657,6 @@ function handleSaveSprite() {
     document.getElementById('photo-preview').style.backgroundImage = '';
     document.getElementById('photo-preview').classList.remove('has-image');
     document.getElementById('photo-hint').textContent = 'No photo selected';
-    document.getElementById('sprite-preview-container').innerHTML = '<p class="sprite-preview-placeholder">Generated sprite will appear here</p>';
-    document.getElementById('save-sprite-btn').style.display = 'none';
     spritePreviewUrl = null;
 }
 

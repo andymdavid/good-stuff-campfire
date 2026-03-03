@@ -841,55 +841,6 @@ div#controls > button {
     to { transform: rotate(360deg); }
 }
 
-.sprite-preview-container {
-    background-color: #141414;
-    border: 1px solid #252525;
-    border-radius: 12px;
-    padding: 24px;
-    min-height: 200px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-}
-
-.sprite-preview-placeholder {
-    font-size: 14px;
-    color: #444;
-}
-
-.sprite-preview-image {
-    max-width: 100%;
-    max-height: 300px;
-    image-rendering: pixelated;
-    border-radius: 4px;
-}
-
-.save-button {
-    width: 100%;
-    padding: 16px 24px;
-    font-size: 14px;
-    font-weight: 500;
-    letter-spacing: -0.2px;
-    color: #000;
-    background-color: #fff;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: all 150ms ease;
-    margin-top: 16px;
-}
-
-.save-button:hover:not(:disabled) {
-    background-color: #e0e0e0;
-}
-
-.save-button:disabled {
-    background-color: #1c1c1c;
-    color: #444;
-    cursor: not-allowed;
-}
-
 .error-message {
     padding: 14px 16px;
     font-size: 13px;
@@ -989,4 +940,87 @@ div#controls > button {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+}
+
+/* Sprite preview modal */
+.sprite-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(0, 0, 0, 0.85);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 200ms ease;
+}
+
+.sprite-modal.visible {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.sprite-modal-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+    padding: 32px;
+    max-width: 90vw;
+    max-height: 90vh;
+}
+
+.sprite-modal-image {
+    max-width: 100%;
+    max-height: 60vh;
+    image-rendering: pixelated;
+    border-radius: 8px;
+    border: 1px solid #333;
+}
+
+.sprite-modal-actions {
+    display: flex;
+    gap: 12px;
+}
+
+.sprite-modal-btn {
+    padding: 12px 24px;
+    font-size: 14px;
+    font-weight: 500;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 150ms ease;
+}
+
+.sprite-modal-btn.accept {
+    background-color: #fff;
+    color: #000;
+}
+
+.sprite-modal-btn.accept:hover {
+    background-color: #e0e0e0;
+}
+
+.sprite-modal-btn.edit {
+    background-color: #2a2a2a;
+    color: #ccc;
+}
+
+.sprite-modal-btn.edit:hover {
+    background-color: #333;
+    color: #fff;
+}
+
+.sprite-modal-btn.reject {
+    background-color: transparent;
+    color: #888;
+    border: 1px solid #333;
+}
+
+.sprite-modal-btn.reject:hover {
+    background-color: #1a1a1a;
+    color: #aaa;
+    border-color: #444;
 }
