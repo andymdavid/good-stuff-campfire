@@ -13,11 +13,11 @@ const REFERENCE_SPRITES = [
 let referenceImagesCache = null;
 
 /**
- * Remove checkerboard transparency pattern from an image
- * AI models often render "transparent" as a visible checkerboard pattern
- * This function detects and removes it, making those pixels truly transparent
+ * Remove green screen background from an image (chroma key)
+ * We ask the AI to generate sprites on a bright green (#00FF00) background
+ * This function removes that green, making those pixels truly transparent
  */
-async function removeCheckerboardBackground(imageDataUrl) {
+async function removeGreenBackground(imageDataUrl) {
     return new Promise((resolve) => {
         const img = new Image();
         img.onload = () => {
@@ -30,64 +30,60 @@ async function removeCheckerboardBackground(imageDataUrl) {
             const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
             const data = imageData.data;
 
-            // Checkerboard colors to detect (common patterns)
-            // White: RGB(255, 255, 255) or near-white
-            // Light gray: RGB(204, 204, 204) or RGB(192, 192, 192) or similar
-            const isCheckerboardColor = (r, g, b) => {
-                // Check for white or near-white
-                if (r > 250 && g > 250 && b > 250) return true;
-                // Check for light gray (typical checkerboard)
-                if (r > 185 && r < 210 && g > 185 && g < 210 && b > 185 && b < 210 &&
-                    Math.abs(r - g) < 5 && Math.abs(g - b) < 5) return true;
-                // Check for slightly darker gray
-                if (r > 150 && r < 185 && g > 150 && g < 185 && b > 150 && b < 185 &&
-                    Math.abs(r - g) < 5 && Math.abs(g - b) < 5) return true;
+            // Check if a pixel is "green screen" green
+            // We look for pixels where green is dominant and red/blue are low
+            const isGreenScreen = (r, g, b) => {
+                // Pure green: high G, low R and B
+                if (g > 200 && r < 100 && b < 100) return true;
+                // Bright green variations
+                if (g > 180 && g > r * 1.5 && g > b * 1.5) return true;
+                // Also catch lighter greens that might appear
+                if (g > 150 && r < 120 && b < 120 && g > r && g > b) return true;
                 return false;
             };
 
-            // First pass: identify potential checkerboard regions
-            // Check if pixel is part of alternating pattern
-            const isPartOfCheckerboard = (x, y, width) => {
-                const idx = (y * width + x) * 4;
-                const r = data[idx], g = data[idx + 1], b = data[idx + 2];
-
-                if (!isCheckerboardColor(r, g, b)) return false;
-
-                // Check if we're in an alternating pattern with neighbors
-                let hasAlternating = false;
-                const checkDirs = [[1, 0], [0, 1], [-1, 0], [0, -1]];
-
-                for (const [dx, dy] of checkDirs) {
-                    const nx = x + dx, ny = y + dy;
-                    if (nx >= 0 && nx < width && ny >= 0 && ny < canvas.height) {
-                        const nIdx = (ny * width + nx) * 4;
-                        const nr = data[nIdx], ng = data[nIdx + 1], nb = data[nIdx + 2];
-                        if (isCheckerboardColor(nr, ng, nb)) {
-                            // Check if colors alternate (one lighter, one darker)
-                            const brightness1 = r + g + b;
-                            const brightness2 = nr + ng + nb;
-                            if (Math.abs(brightness1 - brightness2) > 30) {
-                                hasAlternating = true;
-                                break;
-                            }
-                        }
-                    }
-                }
-
-                return hasAlternating;
+            // Also detect checkerboard pattern (white/gray alternating)
+            const isCheckerboard = (r, g, b) => {
+                // White or near-white
+                if (r > 245 && g > 245 && b > 245) return true;
+                // Light gray (common checkerboard color)
+                if (r > 180 && r < 220 && g > 180 && g < 220 && b > 180 && b < 220 &&
+                    Math.abs(r - g) < 10 && Math.abs(g - b) < 10) return true;
+                return false;
             };
 
-            // Process pixels - make checkerboard pixels transparent
-            for (let y = 0; y < canvas.height; y++) {
-                for (let x = 0; x < canvas.width; x++) {
-                    if (isPartOfCheckerboard(x, y, canvas.width)) {
-                        const idx = (y * canvas.width + x) * 4;
-                        data[idx + 3] = 0; // Set alpha to 0
-                    }
+            let greenCount = 0;
+            let checkerCount = 0;
+            let totalPixels = canvas.width * canvas.height;
+
+            // First pass: count background pixels to determine which removal to use
+            for (let i = 0; i < data.length; i += 4) {
+                const r = data[i], g = data[i + 1], b = data[i + 2];
+                if (isGreenScreen(r, g, b)) greenCount++;
+                if (isCheckerboard(r, g, b)) checkerCount++;
+            }
+
+            console.log(`Background detection: ${greenCount} green pixels, ${checkerCount} checker pixels out of ${totalPixels}`);
+
+            // Determine which background type to remove
+            const useGreen = greenCount > totalPixels * 0.1; // More than 10% green
+            const useChecker = checkerCount > totalPixels * 0.1; // More than 10% checker
+
+            // Second pass: make background pixels transparent
+            for (let i = 0; i < data.length; i += 4) {
+                const r = data[i], g = data[i + 1], b = data[i + 2];
+
+                let shouldRemove = false;
+                if (useGreen && isGreenScreen(r, g, b)) shouldRemove = true;
+                if (useChecker && isCheckerboard(r, g, b)) shouldRemove = true;
+
+                if (shouldRemove) {
+                    data[i + 3] = 0; // Set alpha to 0
                 }
             }
 
             ctx.putImageData(imageData, 0, 0);
+            console.log('SpriteGenerator: Background removal complete');
             resolve(canvas.toDataURL('image/png'));
         };
 
@@ -177,7 +173,7 @@ Sprite Sheet Requirements
 Format: 8 distinct frames arranged in a 4×2 grid.
 Each frame MUST be different — no duplicate or near-duplicate frames.
 
-Transparent background. No seat, props, or environment. Just the character.
+IMPORTANT: Use a solid bright green background (hex #00FF00, pure green) for the entire image. This green background will be removed later to create transparency. Do NOT use a checkerboard pattern. Do NOT use any other background color. The background MUST be solid bright green (#00FF00). No seat, props, or environment. Just the character on a pure green background.
 
 ---
 
@@ -438,8 +434,8 @@ export async function generateSprite(apiKey, characterName, description, referen
 
         // If we found an image, process it to remove checkerboard background
         if (rawImageUrl) {
-            console.log('SpriteGenerator: Processing image to remove checkerboard background...');
-            const processedImageUrl = await removeCheckerboardBackground(rawImageUrl);
+            console.log('SpriteGenerator: Processing image to remove background...');
+            const processedImageUrl = await removeGreenBackground(rawImageUrl);
             return { success: true, data: processedImageUrl };
         }
 
