@@ -1,7 +1,7 @@
 // ScenePanel.js - Home screen panel for scene configuration
 
 import * as SceneConfig from './SceneConfig.js';
-import * as SpriteGenerator from './SpriteGenerator.js';
+import * as SpriteGenerator from './SpriteGenerator.js?v=2';
 
 let panelElement = null;
 let onLaunchCallback = null;
