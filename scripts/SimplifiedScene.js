@@ -5,6 +5,7 @@ import * as Beach from "../scene/Beach.js";
 import * as Campfire from "../scene/Campfire.js";
 import * as Characters from "../scene/Characters.js?v=3";
 import * as PalmTree from "../scene/PalmTree.js";
+import * as FlagPole from "../scene/FlagPole.js";
 
 export let body = null;
 export const clock = new Clock();
@@ -131,6 +132,10 @@ export function Start() {
         PalmTree.Start();
         scene.add(PalmTree.palmTree);
         console.log("Added Palm Tree to scene");
+
+        FlagPole.Start();
+        scene.add(FlagPole.flagPole);
+        console.log("Added Flag Pole to scene");
     } catch (error) {
         console.error("Error during scene component initialization:", error);
     }
@@ -246,6 +251,7 @@ export function Update() {
         Campfire.Update(deltaTime);
         Characters.Update();
         PalmTree.Update();
+        FlagPole.Update(deltaTime);
         renderer.render(scene, camera);
     } catch (error) {
         console.error("Error during scene update:", error);
