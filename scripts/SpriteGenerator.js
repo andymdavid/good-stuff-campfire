@@ -248,22 +248,29 @@ export async function generateSprite(apiKey, characterName, description, referen
         }
 
         const data = await response.json();
+        console.log('SpriteGenerator: API response:', JSON.stringify(data, null, 2));
 
-        // Parse response - Gemini returns image in message content
-        if (data.choices && data.choices[0]?.message?.content) {
-            const messageContent = data.choices[0].message.content;
+        // Parse response - Gemini returns image in message.images array
+        if (data.choices && data.choices[0]?.message) {
+            const message = data.choices[0].message;
 
-            // Content can be a string or array of content parts
-            if (Array.isArray(messageContent)) {
-                // Look for image content
-                for (const part of messageContent) {
+            // Check for images array (OpenRouter Gemini format)
+            if (message.images && Array.isArray(message.images) && message.images.length > 0) {
+                const firstImage = message.images[0];
+                if (firstImage.image_url?.url) {
+                    return { success: true, data: firstImage.image_url.url };
+                }
+            }
+
+            // Check content as array of parts
+            if (Array.isArray(message.content)) {
+                for (const part of message.content) {
                     if (part.type === 'image_url' && part.image_url?.url) {
                         return { success: true, data: part.image_url.url };
                     }
                     if (part.type === 'image' && part.image?.url) {
                         return { success: true, data: part.image.url };
                     }
-                    // Some models return base64 directly
                     if (part.type === 'image' && part.image?.data) {
                         return {
                             success: true,
@@ -273,13 +280,13 @@ export async function generateSprite(apiKey, characterName, description, referen
                 }
             }
 
-            // If it's inline base64 in the response
-            if (typeof messageContent === 'string' && messageContent.startsWith('data:image')) {
-                return { success: true, data: messageContent };
+            // Check if content itself is a data URL
+            if (typeof message.content === 'string' && message.content.startsWith('data:image')) {
+                return { success: true, data: message.content };
             }
         }
 
-        // Check for image in different response formats
+        // Fallback: Check for OpenAI-style image response
         if (data.data && data.data[0]) {
             if (data.data[0].b64_json) {
                 return {
@@ -292,7 +299,7 @@ export async function generateSprite(apiKey, characterName, description, referen
             }
         }
 
-        console.log('SpriteGenerator: Unexpected response format:', data);
+        console.log('SpriteGenerator: Could not find image in response');
         return { success: false, error: 'No image in response. The model may not have generated an image.' };
 
     } catch (error) {
