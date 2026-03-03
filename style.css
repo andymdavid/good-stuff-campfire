@@ -905,3 +905,9 @@ div#controls > button {
     border: 1px solid rgba(107, 255, 107, 0.2);
     border-radius: 8px;
 }
+
+.settings-hint {
+    margin-top: 12px;
+    font-size: 13px;
+    color: #555;
+}

@@ -69,7 +69,8 @@ function createPanelDOM() {
 
     const tabs = [
         { id: 'scene', label: 'Scene Setup' },
-        { id: 'sprites', label: 'Sprite Creator' }
+        { id: 'sprites', label: 'Sprite Creator' },
+        { id: 'settings', label: 'Settings' }
     ];
 
     tabs.forEach(tab => {
@@ -94,11 +95,17 @@ function createPanelDOM() {
     sceneTab.className = 'tab-content active';
     main.appendChild(sceneTab);
 
-    // Sprite Creator tab content (placeholder)
+    // Sprite Creator tab content
     const spritesTab = createSpriteCreatorTab();
     spritesTab.id = 'tab-sprites';
     spritesTab.className = 'tab-content';
     main.appendChild(spritesTab);
+
+    // Settings tab content
+    const settingsTab = createSettingsTab();
+    settingsTab.id = 'tab-settings';
+    settingsTab.className = 'tab-content';
+    main.appendChild(settingsTab);
 
     panelElement.appendChild(main);
     document.body.appendChild(panelElement);
@@ -253,46 +260,6 @@ function createSpriteCreatorTab() {
     const form = document.createElement('div');
     form.className = 'sprite-form';
 
-    // API Key input
-    const apiKeyGroup = document.createElement('div');
-    apiKeyGroup.className = 'form-group';
-
-    const apiKeyLabel = document.createElement('label');
-    apiKeyLabel.className = 'form-label';
-    apiKeyLabel.textContent = 'OpenRouter API Key';
-    apiKeyGroup.appendChild(apiKeyLabel);
-
-    const apiKeyWrapper = document.createElement('div');
-    apiKeyWrapper.className = 'api-key-wrapper';
-
-    const apiKeyInput = document.createElement('input');
-    apiKeyInput.type = 'password';
-    apiKeyInput.id = 'api-key-input';
-    apiKeyInput.className = 'form-input';
-    apiKeyInput.placeholder = 'sk-or-...';
-    apiKeyInput.value = SceneConfig.getApiKey('openrouter') || '';
-    apiKeyInput.onchange = () => {
-        SceneConfig.setApiKey('openrouter', apiKeyInput.value);
-    };
-    apiKeyWrapper.appendChild(apiKeyInput);
-
-    const apiKeyToggle = document.createElement('button');
-    apiKeyToggle.className = 'api-key-toggle';
-    apiKeyToggle.textContent = 'Show';
-    apiKeyToggle.onclick = () => {
-        if (apiKeyInput.type === 'password') {
-            apiKeyInput.type = 'text';
-            apiKeyToggle.textContent = 'Hide';
-        } else {
-            apiKeyInput.type = 'password';
-            apiKeyToggle.textContent = 'Show';
-        }
-    };
-    apiKeyWrapper.appendChild(apiKeyToggle);
-
-    apiKeyGroup.appendChild(apiKeyWrapper);
-    form.appendChild(apiKeyGroup);
-
     // Character name input
     const nameGroup = document.createElement('div');
     nameGroup.className = 'form-group';
@@ -370,8 +337,102 @@ function createSpriteCreatorTab() {
     return container;
 }
 
+function createSettingsTab() {
+    const container = document.createElement('div');
+    container.className = 'tab-container';
+
+    // Header
+    const header = document.createElement('div');
+    header.className = 'tab-header';
+
+    const title = document.createElement('h1');
+    title.className = 'tab-title';
+    title.textContent = 'Settings';
+
+    const subtitle = document.createElement('p');
+    subtitle.className = 'tab-subtitle';
+    subtitle.textContent = 'Configure API keys and preferences';
+
+    header.appendChild(title);
+    header.appendChild(subtitle);
+    container.appendChild(header);
+
+    // Content
+    const content = document.createElement('div');
+    content.className = 'tab-body';
+
+    // API Key card
+    const apiCard = document.createElement('div');
+    apiCard.className = 'panel-card';
+
+    const apiLabel = document.createElement('h3');
+    apiLabel.className = 'card-label';
+    apiLabel.textContent = 'OpenRouter API Key';
+    apiCard.appendChild(apiLabel);
+
+    const apiKeyWrapper = document.createElement('div');
+    apiKeyWrapper.className = 'api-key-wrapper';
+
+    const apiKeyInput = document.createElement('input');
+    apiKeyInput.type = 'password';
+    apiKeyInput.id = 'settings-api-key-input';
+    apiKeyInput.className = 'form-input';
+    apiKeyInput.placeholder = 'sk-or-...';
+    apiKeyInput.value = SceneConfig.getApiKey('openrouter') || '';
+    apiKeyInput.onchange = () => {
+        SceneConfig.setApiKey('openrouter', apiKeyInput.value);
+        showSettingsMessage('API key saved');
+    };
+    apiKeyWrapper.appendChild(apiKeyInput);
+
+    const apiKeyToggle = document.createElement('button');
+    apiKeyToggle.className = 'api-key-toggle';
+    apiKeyToggle.textContent = 'Show';
+    apiKeyToggle.onclick = () => {
+        if (apiKeyInput.type === 'password') {
+            apiKeyInput.type = 'text';
+            apiKeyToggle.textContent = 'Hide';
+        } else {
+            apiKeyInput.type = 'password';
+            apiKeyToggle.textContent = 'Show';
+        }
+    };
+    apiKeyWrapper.appendChild(apiKeyToggle);
+
+    apiCard.appendChild(apiKeyWrapper);
+
+    const apiHint = document.createElement('p');
+    apiHint.className = 'settings-hint';
+    apiHint.textContent = 'Get your API key from openrouter.ai';
+    apiCard.appendChild(apiHint);
+
+    content.appendChild(apiCard);
+
+    // Message area
+    const messageArea = document.createElement('div');
+    messageArea.id = 'settings-message';
+    messageArea.className = 'success-message';
+    messageArea.style.display = 'none';
+    content.appendChild(messageArea);
+
+    container.appendChild(content);
+
+    return container;
+}
+
+function showSettingsMessage(message) {
+    const messageArea = document.getElementById('settings-message');
+    if (messageArea) {
+        messageArea.textContent = message;
+        messageArea.style.display = 'block';
+        setTimeout(() => {
+            messageArea.style.display = 'none';
+        }, 2000);
+    }
+}
+
 async function handleGenerateSprite() {
-    const apiKey = document.getElementById('api-key-input').value;
+    const apiKey = SceneConfig.getApiKey('openrouter');
     const characterName = document.getElementById('character-name-input').value.trim();
     const description = document.getElementById('character-desc-input').value.trim();
     const generateBtn = document.getElementById('generate-sprite-btn');
@@ -381,7 +442,7 @@ async function handleGenerateSprite() {
 
     // Validate inputs
     if (!apiKey) {
-        showMessage(messageArea, 'Please enter your OpenRouter API key', 'error');
+        showMessage(messageArea, 'Please add your OpenRouter API key in Settings', 'error');
         return;
     }
     if (!characterName) {
