@@ -20,7 +20,9 @@ const HOSTS = {
     andy: { name: 'Andy', thumbnail: 'images/AndySprite.png' }
 };
 
-// Available guests
+// Available guests (built-in)
+const BUILT_IN_GUESTS = ['joel', 'gabe', 'bill'];
+
 const GUESTS = {
     joel: { name: 'Joel', thumbnail: 'images/JoelSprite.png' },
     gabe: { name: 'Gabe', thumbnail: 'images/Gabe-Sprite.png' },
@@ -603,7 +605,24 @@ function createCharacterCard(id, char, isGuest) {
     card.setAttribute('data-character', id);
 
     if (isGuest) {
-        card.onclick = () => toggleGuest(id);
+        card.onclick = (e) => {
+            // Don't toggle if clicking delete button
+            if (e.target.classList.contains('delete-guest-btn')) return;
+            toggleGuest(id);
+        };
+    }
+
+    // Add delete button for custom guests (not built-in)
+    const isCustomGuest = isGuest && !BUILT_IN_GUESTS.includes(id);
+    if (isCustomGuest) {
+        const deleteBtn = document.createElement('button');
+        deleteBtn.className = 'delete-guest-btn';
+        deleteBtn.textContent = '×';
+        deleteBtn.onclick = (e) => {
+            e.stopPropagation();
+            deleteGuest(id);
+        };
+        card.appendChild(deleteBtn);
     }
 
     const preview = document.createElement('div');
@@ -620,6 +639,29 @@ function createCharacterCard(id, char, isGuest) {
     card.appendChild(name);
 
     return card;
+}
+
+function deleteGuest(guestId) {
+    // Remove from GUESTS
+    delete GUESTS[guestId];
+
+    // Remove from localStorage
+    const customSprites = getCustomSprites();
+    delete customSprites[guestId];
+    saveCustomSprites(customSprites);
+
+    // Remove from selected guests if selected
+    const index = selectedGuests.indexOf(guestId);
+    if (index > -1) {
+        selectedGuests.splice(index, 1);
+    }
+
+    // Refresh the guest grid
+    refreshGuestGrid();
+    updateLaunchButton();
+    saveSelection();
+
+    console.log(`ScenePanel: Deleted custom guest "${guestId}"`);
 }
 
 function selectCount(count) {

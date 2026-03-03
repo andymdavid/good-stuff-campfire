@@ -526,6 +526,7 @@ div#controls > button {
 }
 
 .character-item {
+    position: relative;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -910,4 +911,33 @@ div#controls > button {
     margin-top: 12px;
     font-size: 13px;
     color: #555;
+}
+
+/* Delete button for custom guests */
+.delete-guest-btn {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 18px;
+    color: #666;
+    background-color: #2a2a2a;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 150ms ease, background-color 150ms ease, color 150ms ease;
+}
+
+.character-item:hover .delete-guest-btn {
+    opacity: 1;
+}
+
+.delete-guest-btn:hover {
+    background-color: #ff4444;
+    color: #fff;
 }
