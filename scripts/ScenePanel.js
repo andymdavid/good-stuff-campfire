@@ -1,6 +1,7 @@
 // ScenePanel.js - Home screen panel for scene configuration
 
 import * as SceneConfig from './SceneConfig.js';
+import * as SpriteGenerator from './SpriteGenerator.js';
 
 let panelElement = null;
 let onLaunchCallback = null;
@@ -8,6 +9,10 @@ let guestDrawer = null;
 let selectedGuestCount = 0;
 let selectedGuests = [];
 let currentTab = 'scene';
+
+// Sprite Creator state
+let spritePreviewUrl = null;
+let isGenerating = false;
 
 // Hosts (always included)
 const HOSTS = {
@@ -24,6 +29,7 @@ const GUESTS = {
 
 export function Start(onLaunch) {
     onLaunchCallback = onLaunch;
+    loadCustomSpritesToGuests();
     createPanelDOM();
     loadSavedSelection();
     show();
@@ -234,34 +240,286 @@ function createSpriteCreatorTab() {
 
     const subtitle = document.createElement('p');
     subtitle.className = 'tab-subtitle';
-    subtitle.textContent = 'Generate custom character sprites';
+    subtitle.textContent = 'Generate custom character sprites with AI';
 
     header.appendChild(title);
     header.appendChild(subtitle);
     container.appendChild(header);
 
-    // Placeholder content
+    // Content - Form
     const content = document.createElement('div');
     content.className = 'tab-body';
 
-    const placeholder = document.createElement('div');
-    placeholder.className = 'placeholder-card';
+    const form = document.createElement('div');
+    form.className = 'sprite-form';
 
-    const placeholderIcon = document.createElement('div');
-    placeholderIcon.className = 'placeholder-icon';
-    placeholderIcon.textContent = '';
+    // API Key input
+    const apiKeyGroup = document.createElement('div');
+    apiKeyGroup.className = 'form-group';
 
-    const placeholderText = document.createElement('p');
-    placeholderText.className = 'placeholder-text';
-    placeholderText.textContent = 'Coming soon';
+    const apiKeyLabel = document.createElement('label');
+    apiKeyLabel.className = 'form-label';
+    apiKeyLabel.textContent = 'OpenRouter API Key';
+    apiKeyGroup.appendChild(apiKeyLabel);
 
-    placeholder.appendChild(placeholderIcon);
-    placeholder.appendChild(placeholderText);
-    content.appendChild(placeholder);
+    const apiKeyWrapper = document.createElement('div');
+    apiKeyWrapper.className = 'api-key-wrapper';
 
+    const apiKeyInput = document.createElement('input');
+    apiKeyInput.type = 'password';
+    apiKeyInput.id = 'api-key-input';
+    apiKeyInput.className = 'form-input';
+    apiKeyInput.placeholder = 'sk-or-...';
+    apiKeyInput.value = SceneConfig.getApiKey('openrouter') || '';
+    apiKeyInput.onchange = () => {
+        SceneConfig.setApiKey('openrouter', apiKeyInput.value);
+    };
+    apiKeyWrapper.appendChild(apiKeyInput);
+
+    const apiKeyToggle = document.createElement('button');
+    apiKeyToggle.className = 'api-key-toggle';
+    apiKeyToggle.textContent = 'Show';
+    apiKeyToggle.onclick = () => {
+        if (apiKeyInput.type === 'password') {
+            apiKeyInput.type = 'text';
+            apiKeyToggle.textContent = 'Hide';
+        } else {
+            apiKeyInput.type = 'password';
+            apiKeyToggle.textContent = 'Show';
+        }
+    };
+    apiKeyWrapper.appendChild(apiKeyToggle);
+
+    apiKeyGroup.appendChild(apiKeyWrapper);
+    form.appendChild(apiKeyGroup);
+
+    // Character name input
+    const nameGroup = document.createElement('div');
+    nameGroup.className = 'form-group';
+
+    const nameLabel = document.createElement('label');
+    nameLabel.className = 'form-label';
+    nameLabel.textContent = 'Character Name';
+    nameGroup.appendChild(nameLabel);
+
+    const nameInput = document.createElement('input');
+    nameInput.type = 'text';
+    nameInput.id = 'character-name-input';
+    nameInput.className = 'form-input';
+    nameInput.placeholder = 'e.g., Sarah';
+    nameGroup.appendChild(nameInput);
+
+    form.appendChild(nameGroup);
+
+    // Description textarea
+    const descGroup = document.createElement('div');
+    descGroup.className = 'form-group';
+
+    const descLabel = document.createElement('label');
+    descLabel.className = 'form-label';
+    descLabel.textContent = 'Character Description';
+    descGroup.appendChild(descLabel);
+
+    const descInput = document.createElement('textarea');
+    descInput.id = 'character-desc-input';
+    descInput.className = 'form-textarea';
+    descInput.placeholder = 'Describe the character appearance, e.g., "a young woman with curly red hair, wearing a green sweater and jeans"';
+    descGroup.appendChild(descInput);
+
+    form.appendChild(descGroup);
+
+    // Generate button
+    const generateBtn = document.createElement('button');
+    generateBtn.id = 'generate-sprite-btn';
+    generateBtn.className = 'generate-button';
+    generateBtn.textContent = 'Generate Sprite';
+    generateBtn.onclick = handleGenerateSprite;
+    form.appendChild(generateBtn);
+
+    // Error/Success message area
+    const messageArea = document.createElement('div');
+    messageArea.id = 'sprite-message';
+    messageArea.style.display = 'none';
+    form.appendChild(messageArea);
+
+    // Preview container
+    const previewContainer = document.createElement('div');
+    previewContainer.className = 'sprite-preview-container';
+    previewContainer.id = 'sprite-preview-container';
+
+    const previewPlaceholder = document.createElement('p');
+    previewPlaceholder.className = 'sprite-preview-placeholder';
+    previewPlaceholder.id = 'sprite-preview-placeholder';
+    previewPlaceholder.textContent = 'Generated sprite will appear here';
+    previewContainer.appendChild(previewPlaceholder);
+
+    form.appendChild(previewContainer);
+
+    // Save button (hidden until sprite is generated)
+    const saveBtn = document.createElement('button');
+    saveBtn.id = 'save-sprite-btn';
+    saveBtn.className = 'save-button';
+    saveBtn.textContent = 'Save & Add to Characters';
+    saveBtn.style.display = 'none';
+    saveBtn.onclick = handleSaveSprite;
+    form.appendChild(saveBtn);
+
+    content.appendChild(form);
     container.appendChild(content);
 
     return container;
+}
+
+async function handleGenerateSprite() {
+    const apiKey = document.getElementById('api-key-input').value;
+    const characterName = document.getElementById('character-name-input').value.trim();
+    const description = document.getElementById('character-desc-input').value.trim();
+    const generateBtn = document.getElementById('generate-sprite-btn');
+    const messageArea = document.getElementById('sprite-message');
+    const previewContainer = document.getElementById('sprite-preview-container');
+    const saveBtn = document.getElementById('save-sprite-btn');
+
+    // Validate inputs
+    if (!apiKey) {
+        showMessage(messageArea, 'Please enter your OpenRouter API key', 'error');
+        return;
+    }
+    if (!characterName) {
+        showMessage(messageArea, 'Please enter a character name', 'error');
+        return;
+    }
+    if (!description) {
+        showMessage(messageArea, 'Please enter a character description', 'error');
+        return;
+    }
+
+    // Set loading state
+    isGenerating = true;
+    generateBtn.disabled = true;
+    generateBtn.classList.add('loading');
+    generateBtn.textContent = '';
+    saveBtn.style.display = 'none';
+    hideMessage(messageArea);
+
+    try {
+        const result = await SpriteGenerator.generateSprite(apiKey, characterName, description);
+
+        if (result.success) {
+            spritePreviewUrl = result.data;
+
+            // Show preview
+            previewContainer.innerHTML = '';
+            const previewImg = document.createElement('img');
+            previewImg.className = 'sprite-preview-image';
+            previewImg.src = spritePreviewUrl;
+            previewImg.alt = `Generated sprite for ${characterName}`;
+            previewContainer.appendChild(previewImg);
+
+            // Show save button
+            saveBtn.style.display = 'block';
+
+            showMessage(messageArea, 'Sprite generated successfully!', 'success');
+        } else {
+            showMessage(messageArea, result.error || 'Failed to generate sprite', 'error');
+        }
+    } catch (error) {
+        console.error('Sprite generation error:', error);
+        showMessage(messageArea, 'An unexpected error occurred', 'error');
+    } finally {
+        isGenerating = false;
+        generateBtn.disabled = false;
+        generateBtn.classList.remove('loading');
+        generateBtn.textContent = 'Generate Sprite';
+    }
+}
+
+function handleSaveSprite() {
+    const characterName = document.getElementById('character-name-input').value.trim();
+    const messageArea = document.getElementById('sprite-message');
+
+    if (!spritePreviewUrl || !characterName) {
+        showMessage(messageArea, 'No sprite to save', 'error');
+        return;
+    }
+
+    // Generate a safe ID from the character name
+    const characterId = characterName.toLowerCase().replace(/[^a-z0-9]/g, '_');
+
+    // Save to localStorage
+    const customSprites = getCustomSprites();
+    customSprites[characterId] = {
+        name: characterName,
+        dataUrl: spritePreviewUrl,
+        createdAt: new Date().toISOString()
+    };
+    saveCustomSprites(customSprites);
+
+    // Add to GUESTS list for this session
+    GUESTS[characterId] = {
+        name: characterName,
+        thumbnail: spritePreviewUrl
+    };
+
+    // Refresh the guest grid if visible
+    refreshGuestGrid();
+
+    showMessage(messageArea, `${characterName} added to available characters!`, 'success');
+
+    // Clear form
+    document.getElementById('character-name-input').value = '';
+    document.getElementById('character-desc-input').value = '';
+    document.getElementById('sprite-preview-container').innerHTML = '<p class="sprite-preview-placeholder">Generated sprite will appear here</p>';
+    document.getElementById('save-sprite-btn').style.display = 'none';
+    spritePreviewUrl = null;
+}
+
+function getCustomSprites() {
+    try {
+        const stored = localStorage.getItem('campfire-custom-sprites');
+        return stored ? JSON.parse(stored) : {};
+    } catch (e) {
+        return {};
+    }
+}
+
+function saveCustomSprites(sprites) {
+    try {
+        localStorage.setItem('campfire-custom-sprites', JSON.stringify(sprites));
+    } catch (e) {
+        console.error('Failed to save custom sprites:', e);
+    }
+}
+
+function loadCustomSpritesToGuests() {
+    const customSprites = getCustomSprites();
+    Object.entries(customSprites).forEach(([id, sprite]) => {
+        GUESTS[id] = {
+            name: sprite.name,
+            thumbnail: sprite.dataUrl
+        };
+    });
+}
+
+function refreshGuestGrid() {
+    const guestGrid = document.querySelector('.guest-grid');
+    if (!guestGrid) return;
+
+    guestGrid.innerHTML = '';
+    Object.entries(GUESTS).forEach(([id, char]) => {
+        const guestCard = createCharacterCard(id, char, true);
+        guestGrid.appendChild(guestCard);
+    });
+    updateGuestSelection();
+}
+
+function showMessage(element, message, type) {
+    element.textContent = message;
+    element.className = type === 'error' ? 'error-message' : 'success-message';
+    element.style.display = 'block';
+}
+
+function hideMessage(element) {
+    element.style.display = 'none';
 }
 
 function switchTab(tabId) {
