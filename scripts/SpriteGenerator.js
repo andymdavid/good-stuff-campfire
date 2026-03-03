@@ -13,6 +13,94 @@ const REFERENCE_SPRITES = [
 let referenceImagesCache = null;
 
 /**
+ * Remove checkerboard transparency pattern from an image
+ * AI models often render "transparent" as a visible checkerboard pattern
+ * This function detects and removes it, making those pixels truly transparent
+ */
+async function removeCheckerboardBackground(imageDataUrl) {
+    return new Promise((resolve) => {
+        const img = new Image();
+        img.onload = () => {
+            const canvas = document.createElement('canvas');
+            canvas.width = img.width;
+            canvas.height = img.height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0);
+
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const data = imageData.data;
+
+            // Checkerboard colors to detect (common patterns)
+            // White: RGB(255, 255, 255) or near-white
+            // Light gray: RGB(204, 204, 204) or RGB(192, 192, 192) or similar
+            const isCheckerboardColor = (r, g, b) => {
+                // Check for white or near-white
+                if (r > 250 && g > 250 && b > 250) return true;
+                // Check for light gray (typical checkerboard)
+                if (r > 185 && r < 210 && g > 185 && g < 210 && b > 185 && b < 210 &&
+                    Math.abs(r - g) < 5 && Math.abs(g - b) < 5) return true;
+                // Check for slightly darker gray
+                if (r > 150 && r < 185 && g > 150 && g < 185 && b > 150 && b < 185 &&
+                    Math.abs(r - g) < 5 && Math.abs(g - b) < 5) return true;
+                return false;
+            };
+
+            // First pass: identify potential checkerboard regions
+            // Check if pixel is part of alternating pattern
+            const isPartOfCheckerboard = (x, y, width) => {
+                const idx = (y * width + x) * 4;
+                const r = data[idx], g = data[idx + 1], b = data[idx + 2];
+
+                if (!isCheckerboardColor(r, g, b)) return false;
+
+                // Check if we're in an alternating pattern with neighbors
+                let hasAlternating = false;
+                const checkDirs = [[1, 0], [0, 1], [-1, 0], [0, -1]];
+
+                for (const [dx, dy] of checkDirs) {
+                    const nx = x + dx, ny = y + dy;
+                    if (nx >= 0 && nx < width && ny >= 0 && ny < canvas.height) {
+                        const nIdx = (ny * width + nx) * 4;
+                        const nr = data[nIdx], ng = data[nIdx + 1], nb = data[nIdx + 2];
+                        if (isCheckerboardColor(nr, ng, nb)) {
+                            // Check if colors alternate (one lighter, one darker)
+                            const brightness1 = r + g + b;
+                            const brightness2 = nr + ng + nb;
+                            if (Math.abs(brightness1 - brightness2) > 30) {
+                                hasAlternating = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                return hasAlternating;
+            };
+
+            // Process pixels - make checkerboard pixels transparent
+            for (let y = 0; y < canvas.height; y++) {
+                for (let x = 0; x < canvas.width; x++) {
+                    if (isPartOfCheckerboard(x, y, canvas.width)) {
+                        const idx = (y * canvas.width + x) * 4;
+                        data[idx + 3] = 0; // Set alpha to 0
+                    }
+                }
+            }
+
+            ctx.putImageData(imageData, 0, 0);
+            resolve(canvas.toDataURL('image/png'));
+        };
+
+        img.onerror = () => {
+            console.warn('Failed to process image for background removal');
+            resolve(imageDataUrl); // Return original on error
+        };
+
+        img.src = imageDataUrl;
+    });
+}
+
+/**
  * Load an image and convert to base64 data URL
  */
 async function imageToBase64(imagePath) {
@@ -293,6 +381,8 @@ export async function generateSprite(apiKey, characterName, description, referen
         }
 
         // Parse response - try to find image anywhere in the response
+        let rawImageUrl = null;
+
         if (data.choices && data.choices[0]?.message) {
             const message = data.choices[0].message;
             console.log('SpriteGenerator: Message keys:', Object.keys(message));
@@ -300,55 +390,57 @@ export async function generateSprite(apiKey, characterName, description, referen
             // Check for images array (OpenRouter Gemini format)
             if (message.images && Array.isArray(message.images) && message.images.length > 0) {
                 console.log('SpriteGenerator: Found images array with', message.images.length, 'images');
-                const imageUrl = findImageUrl(message.images[0]);
-                if (imageUrl) {
-                    return { success: true, data: imageUrl };
-                }
+                rawImageUrl = findImageUrl(message.images[0]);
             }
 
             // Check content array
-            if (Array.isArray(message.content)) {
+            if (!rawImageUrl && Array.isArray(message.content)) {
                 console.log('SpriteGenerator: Content is array with', message.content.length, 'parts');
                 for (const part of message.content) {
                     console.log('SpriteGenerator: Part type:', part.type);
-                    const imageUrl = findImageUrl(part);
-                    if (imageUrl) {
-                        return { success: true, data: imageUrl };
-                    }
+                    rawImageUrl = findImageUrl(part);
+                    if (rawImageUrl) break;
                 }
             }
 
             // Check if content itself is a data URL
-            if (typeof message.content === 'string') {
+            if (!rawImageUrl && typeof message.content === 'string') {
                 console.log('SpriteGenerator: Content is string, length:', message.content.length);
                 if (message.content.startsWith('data:image')) {
-                    return { success: true, data: message.content };
+                    rawImageUrl = message.content;
+                } else {
+                    // Log first 200 chars of text response
+                    console.log('SpriteGenerator: Text response:', message.content.substring(0, 200));
                 }
-                // Log first 200 chars of text response
-                console.log('SpriteGenerator: Text response:', message.content.substring(0, 200));
             }
 
             // Try recursive search on entire message
-            const foundUrl = findImageUrl(message);
-            if (foundUrl) {
-                console.log('SpriteGenerator: Found image via recursive search');
-                return { success: true, data: foundUrl };
+            if (!rawImageUrl) {
+                rawImageUrl = findImageUrl(message);
+                if (rawImageUrl) {
+                    console.log('SpriteGenerator: Found image via recursive search');
+                }
             }
         }
 
         // Fallback: Check for OpenAI-style image response
-        if (data.data && data.data[0]) {
-            const imageUrl = findImageUrl(data.data[0]);
-            if (imageUrl) {
-                return { success: true, data: imageUrl };
-            }
+        if (!rawImageUrl && data.data && data.data[0]) {
+            rawImageUrl = findImageUrl(data.data[0]);
         }
 
         // Try recursive search on entire response as last resort
-        const foundUrl = findImageUrl(data);
-        if (foundUrl) {
-            console.log('SpriteGenerator: Found image in response via deep search');
-            return { success: true, data: foundUrl };
+        if (!rawImageUrl) {
+            rawImageUrl = findImageUrl(data);
+            if (rawImageUrl) {
+                console.log('SpriteGenerator: Found image in response via deep search');
+            }
+        }
+
+        // If we found an image, process it to remove checkerboard background
+        if (rawImageUrl) {
+            console.log('SpriteGenerator: Processing image to remove checkerboard background...');
+            const processedImageUrl = await removeCheckerboardBackground(rawImageUrl);
+            return { success: true, data: processedImageUrl };
         }
 
         // Extract any text response for error message
