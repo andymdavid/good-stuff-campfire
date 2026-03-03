@@ -69,6 +69,35 @@ const ALL_CHARACTERS = {
     }
 };
 
+// Load custom sprites from localStorage
+function loadCustomCharacters() {
+    try {
+        const stored = localStorage.getItem('campfire-custom-sprites');
+        if (stored) {
+            const customSprites = JSON.parse(stored);
+            Object.entries(customSprites).forEach(([id, sprite]) => {
+                if (!ALL_CHARACTERS[id]) {
+                    ALL_CHARACTERS[id] = {
+                        textureFile: sprite.dataUrl,
+                        framesHorizontal: 4,
+                        framesVertical: 2,
+                        totalFrames: 8,
+                        scale: 0.52,
+                        facingRight: false,
+                        startFrame: 0
+                    };
+                    console.log(`Characters: Loaded custom character "${sprite.name}" (${id})`);
+                }
+            });
+        }
+    } catch (e) {
+        console.warn('Failed to load custom characters:', e);
+    }
+}
+
+// Initialize custom characters on module load
+loadCustomCharacters();
+
 // Dynamic positioning function - handles 2, 3, or 4 characters
 function calculateSpritePositions(count) {
     const DISTANCE_FROM_CAMPFIRE = 1.6;
